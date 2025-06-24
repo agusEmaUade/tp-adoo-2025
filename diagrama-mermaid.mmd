@@ -1,6 +1,7 @@
 ---
 config:
   theme: mc
+id: ca1156c1-1c52-4377-a4e9-8b4ec3c6e6d5
 ---
 classDiagram
     direction TB
@@ -24,18 +25,44 @@ classDiagram
         -cantJugadoresRequeridos: int
         -duracion: int
         -estadoActual: EstadoPartido
-        -equipo: Equipo
+        -equipos: list~Equipo~
+        -ubicacion: Ubicacion
+        -organizador: Usuario
+        -criterios: CriteriosPartido
+        + cambiarEstado(nuevoEstado: EstadoPartido)
+        + getEstado(): EstadoPartido
+        + estaCompleto(): boolean
+        + puedeIniciar(): boolean
+        + tieneCriterios(): boolean
+        + aplicarCriterios(criterios: CriteriosPartido)
+        + quitarCriterios()
+    }
+    
+    class CriteriosPartido {
         -nivelMinimo: string
         -nivelMaximo: string
-        -ubicacion: Ubicacion
+        -edadMinima: int
+        -edadMaxima: int
+        -genero: string
+        -radioMaximo: float
+        + cumpleCriterios(usuario: Usuario): boolean
+        + validarNivel(nivel: string): boolean
+        + validarEdad(edad: int): boolean
+        + validarGenero(genero: string): boolean
+        + validarUbicacion(ubicacion: Ubicacion): boolean
+    }
+    
+    class GestorPartido {
         -notificacionManager: NotificacionManager
-        + cambiarEstado(nuevoEstado: EstadoPartido)
-        + agregarJugador(usuario: Usuario)
-        + confirmarPartido()
-        + cancelarPartido()
-        + iniciarPartido()
-        + finalizarPartido()
-        - notificarEvento(evento: EventoPartido)
+        -emparejador: Emparejador
+        + crearPartido(datos: DatosPartido): Partido
+        + agregarJugador(partido: Partido, usuario: Usuario): boolean
+        + confirmarPartido(partido: Partido): boolean
+        + cancelarPartido(partido: Partido): boolean
+        + iniciarPartido(partido: Partido): boolean
+        + finalizarPartido(partido: Partido): boolean
+        - validarOperacion(partido: Partido, operacion: string): boolean
+        - notificarEvento(partido: Partido, evento: EventoPartido)
     }
 
     class Ubicacion {
@@ -122,9 +149,20 @@ classDiagram
     class Equipo {
         - nombre: string
         - jugadores: list~Usuario~
+        - capitan: Usuario
+        - nivelPromedio: string
+        - fechaCreacion: string
+        - maxJugadores: int
         + agregarJugador(jugador: Usuario)
         + eliminarJugador(jugador: Usuario)
         + cantidadJugadores(): int
+        + estaCompleto(): boolean
+        + puedeAgregarJugador(): boolean
+        + asignarCapitan(usuario: Usuario)
+        + obtenerCapitan(): Usuario
+        + calcularNivelPromedio(): string
+        + obtenerJugadores(): list~Usuario~
+        + validarCapacidad(cantidad: int): boolean
     }
     
     namespace PatronFactory {
@@ -293,14 +331,17 @@ classDiagram
     PushNotificador --> ServicioPush : usa
     
     NotificacionManager --> NotificacionObserver : notifica
-    Partido --> NotificacionManager : usa
     NotificacionManager --> EventoPartido : maneja
     
     %% Otras relaciones
-    Emparejador --> Partido : gestiona
+    GestorPartido --> Partido : gestiona
+    GestorPartido --> Emparejador : usa
+    GestorPartido --> NotificacionManager : usa
     Equipo --> Usuario : contiene
 
     Partido "1" --> "1" Ubicacion
-    Partido "0" --> "*" Equipo: tiene equipos
+    Partido "1" --> "*" Equipo: tiene equipos
+    Partido "1" --> "1" Usuario: organizador
+    Partido "0..1" --> "0..1" CriteriosPartido: puede tener criterios
 
     Usuario "1" --> "1" Ubicacion : tiene
