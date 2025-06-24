@@ -1,26 +1,16 @@
 package com.tp.uno.mas.encuentros.deportivos.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Ubicacion {
     private float latitud;
     private float longitud;
     private float radio;
-
-    public Ubicacion() {}
-
-    public Ubicacion(float latitud, float longitud, float radio) {
-        this.latitud = latitud;
-        this.longitud = longitud;
-        this.radio = radio;
-    }
-
-    public float getLatitud() { return latitud; }
-    public void setLatitud(float latitud) { this.latitud = latitud; }
-
-    public float getLongitud() { return longitud; }
-    public void setLongitud(float longitud) { this.longitud = longitud; }
-
-    public float getRadio() { return radio; }
-    public void setRadio(float radio) { this.radio = radio; }
 
     public double calcularDistancia(Ubicacion otra) {
         double radioTierra = 6371; // Radio de la Tierra en km
@@ -37,12 +27,5 @@ public class Ubicacion {
         return radioTierra * c;
     }
 
-    @Override
-    public String toString() {
-        return "Ubicacion{" +
-                "latitud=" + latitud +
-                ", longitud=" + longitud +
-                ", radio=" + radio +
-                '}';
-    }
+    // toString() ya es generado automáticamente por @Data
 } 

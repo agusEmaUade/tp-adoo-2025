@@ -1,5 +1,12 @@
 package com.tp.uno.mas.encuentros.deportivos.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class CriteriosPartido {
     private String nivelMinimo;
     private String nivelMaximo;
@@ -7,18 +14,6 @@ public class CriteriosPartido {
     private int edadMaxima;
     private String genero;
     private float radioMaximo;
-
-    public CriteriosPartido() {}
-
-    public CriteriosPartido(String nivelMinimo, String nivelMaximo, int edadMinima, 
-                           int edadMaxima, String genero, float radioMaximo) {
-        this.nivelMinimo = nivelMinimo;
-        this.nivelMaximo = nivelMaximo;
-        this.edadMinima = edadMinima;
-        this.edadMaxima = edadMaxima;
-        this.genero = genero;
-        this.radioMaximo = radioMaximo;
-    }
 
     public boolean cumpleCriterios(Usuario usuario) {
         return validarNivel(usuario.getNivel()) &&
@@ -62,22 +57,5 @@ public class CriteriosPartido {
         }
     }
 
-    // Getters y Setters
-    public String getNivelMinimo() { return nivelMinimo; }
-    public void setNivelMinimo(String nivelMinimo) { this.nivelMinimo = nivelMinimo; }
-
-    public String getNivelMaximo() { return nivelMaximo; }
-    public void setNivelMaximo(String nivelMaximo) { this.nivelMaximo = nivelMaximo; }
-
-    public int getEdadMinima() { return edadMinima; }
-    public void setEdadMinima(int edadMinima) { this.edadMinima = edadMinima; }
-
-    public int getEdadMaxima() { return edadMaxima; }
-    public void setEdadMaxima(int edadMaxima) { this.edadMaxima = edadMaxima; }
-
-    public String getGenero() { return genero; }
-    public void setGenero(String genero) { this.genero = genero; }
-
-    public float getRadioMaximo() { return radioMaximo; }
-    public void setRadioMaximo(float radioMaximo) { this.radioMaximo = radioMaximo; }
+    // Getters y Setters generados automáticamente por @Data
 } 

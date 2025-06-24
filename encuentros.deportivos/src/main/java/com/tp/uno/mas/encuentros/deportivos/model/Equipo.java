@@ -1,8 +1,17 @@
 package com.tp.uno.mas.encuentros.deportivos.model;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.NoArgsConstructor;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter // Genera todos los getters automáticamente
+@Setter // Genera todos los setters automáticamente
+@ToString(exclude = {"jugadores"}) // Genera toString excluyendo la lista de jugadores para evitar loops
+@NoArgsConstructor // Genera constructor sin parámetros
 public class Equipo {
     private String nombre;
     private List<Usuario> jugadores;
@@ -11,15 +20,17 @@ public class Equipo {
     private String fechaCreacion;
     private int maxJugadores;
 
-    public Equipo() {
-        this.jugadores = new ArrayList<>();
-    }
-
+    // Constructor personalizado (el @NoArgsConstructor ya genera el constructor vacío)
     public Equipo(String nombre, int maxJugadores) {
         this.nombre = nombre;
         this.maxJugadores = maxJugadores;
         this.jugadores = new ArrayList<>();
         this.fechaCreacion = java.time.LocalDateTime.now().toString();
+    }
+    
+    // Inicializar la lista en el constructor sin parámetros
+    {
+        this.jugadores = new ArrayList<>();
     }
 
     public void agregarJugador(Usuario jugador) {
@@ -101,32 +112,5 @@ public class Equipo {
         return "avanzado";
     }
 
-    // Getters y Setters
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
-
-    public List<Usuario> getJugadores() { return jugadores; }
-    public void setJugadores(List<Usuario> jugadores) { this.jugadores = jugadores; }
-
-    public Usuario getCapitan() { return capitan; }
-    public void setCapitan(Usuario capitan) { this.capitan = capitan; }
-
-    public String getNivelPromedio() { return nivelPromedio; }
-    public void setNivelPromedio(String nivelPromedio) { this.nivelPromedio = nivelPromedio; }
-
-    public String getFechaCreacion() { return fechaCreacion; }
-    public void setFechaCreacion(String fechaCreacion) { this.fechaCreacion = fechaCreacion; }
-
-    public int getMaxJugadores() { return maxJugadores; }
-    public void setMaxJugadores(int maxJugadores) { this.maxJugadores = maxJugadores; }
-
-    @Override
-    public String toString() {
-        return "Equipo{" +
-                "nombre='" + nombre + '\'' +
-                ", cantidadJugadores=" + jugadores.size() +
-                ", capitan=" + (capitan != null ? capitan.getNombre() : "Sin capitán") +
-                ", nivelPromedio='" + nivelPromedio + '\'' +
-                '}';
-    }
+    // Getters, Setters y toString generados automáticamente por las anotaciones @Getter, @Setter, @ToString
 } 
