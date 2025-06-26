@@ -1,5 +1,6 @@
 package com.tp.uno.mas.encuentros.deportivos.model;
 
+import com.tp.uno.mas.encuentros.deportivos.model.nivel.Nivel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,8 +13,33 @@ public class Usuario {
     private String email;
     private String contraseña;
     private String deporteFavorito;
-    private String nivel; // principiante, intermedio, avanzado
+    private Nivel nivel;
     private Ubicacion ubicacion;
     private int edad;
     private String genero;
+    
+    // Constructor de conveniencia que acepta String para el nivel
+    public Usuario(String nombre, String email, String contraseña, String deporteFavorito, 
+                   String nivelString, Ubicacion ubicacion, int edad, String genero) {
+        this.nombre = nombre;
+        this.email = email;
+        this.contraseña = contraseña;
+        this.deporteFavorito = deporteFavorito;
+        this.nivel = Nivel.desde(nivelString);
+        this.ubicacion = ubicacion;
+        this.edad = edad;
+        this.genero = genero;
+    }
+    
+    // Override del getter generado por Lombok para devolver Nivel directamente
+    public Nivel getNivel() {
+        return nivel != null ? nivel : Nivel.PRINCIPIANTE;
+    }
+    
+    // Setter que acepta String
+    public void setNivel(String nivelString) {
+        this.nivel = Nivel.desde(nivelString);
+    }
+    
+
 } 

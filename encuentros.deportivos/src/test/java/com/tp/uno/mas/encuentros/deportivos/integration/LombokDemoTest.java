@@ -44,7 +44,7 @@ class LombokDemoTest {
         
         // Verificaciones
         assertEquals("María García", usuario.getNombre());
-        assertEquals("avanzado", usuario.getNivel());
+        assertEquals("avanzado", usuario.getNivel().toString());
         assertEquals(29, usuario.getEdad());
         
         System.out.println("✅ Lombok @Data funciona perfectamente!");
@@ -180,14 +180,14 @@ class LombokDemoTest {
         // Todos los getters que usábamos antes siguen funcionando
         assertEquals("Juan", usuario.getNombre());
         assertEquals("juan@test.com", usuario.getEmail());
-        assertEquals("intermedio", usuario.getNivel());
+        assertEquals("intermedio", usuario.getNivel().toString());
         assertEquals(25, usuario.getEdad());
         
         // Todos los setters que usábamos antes siguen funcionando
         usuario.setNombre("Juan Carlos");
-        usuario.setNivel("avanzado");
+        usuario.setNivel("avanzado"); // Usar método de compatibilidad
         assertEquals("Juan Carlos", usuario.getNombre());
-        assertEquals("avanzado", usuario.getNivel());
+        assertEquals("avanzado", usuario.getNivel().toString());
         
         // Los métodos de negocio personalizados siguen funcionando
         assertTrue(ubicacion.calcularDistancia(new Ubicacion(-34.6040f, -58.3820f, 1.0f)) > 0);

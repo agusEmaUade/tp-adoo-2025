@@ -102,7 +102,7 @@ class TestResumenIntegrationTest {
         assertTrue(confirmado);
         assertTrue(partidoTenis.getEstadoActual() instanceof Confirmado);
         
-        // Ahora sí debería poder iniciar
+       
         boolean iniciado = gestorPartido.iniciarPartido(partidoTenis);
         assertTrue(iniciado, "El partido debería poder iniciar ahora que está completo y confirmado");
         assertTrue(partidoTenis.getEstadoActual() instanceof EnJuego);

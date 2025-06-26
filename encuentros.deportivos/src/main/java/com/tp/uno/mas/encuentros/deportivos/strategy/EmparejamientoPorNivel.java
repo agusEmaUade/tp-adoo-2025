@@ -3,6 +3,7 @@ package com.tp.uno.mas.encuentros.deportivos.strategy;
 import com.tp.uno.mas.encuentros.deportivos.model.Equipo;
 import com.tp.uno.mas.encuentros.deportivos.model.Partido;
 import com.tp.uno.mas.encuentros.deportivos.model.Usuario;
+import com.tp.uno.mas.encuentros.deportivos.model.nivel.Nivel;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,7 +24,7 @@ public class EmparejamientoPorNivel implements EstrategiaEmparejamiento {
         Equipo equipo = new Equipo("Equipo " + compatibles.get(0).getNivel(), 
                                    partido.getCantJugadoresRequeridos() / 2);
         
-        String nivelObjetivo = compatibles.get(0).getNivel();
+        Nivel nivelObjetivo = compatibles.get(0).getNivel();
         for (Usuario usuario : compatibles) {
             if (usuario.getNivel().equals(nivelObjetivo) && equipo.puedeAgregarJugador()) {
                 equipo.agregarJugador(usuario);
@@ -45,27 +46,18 @@ public class EmparejamientoPorNivel implements EstrategiaEmparejamiento {
     private boolean validarNivelMinimo(Usuario usuario, Partido partido) {
         if (partido.getCriterios().getNivelMinimo() == null) return true;
         
-        int nivelUsuario = convertirNivelANumero(usuario.getNivel());
-        int nivelMinimo = convertirNivelANumero(partido.getCriterios().getNivelMinimo());
+        Nivel nivelUsuario = usuario.getNivel();
+        Nivel nivelMinimo = Nivel.desde(partido.getCriterios().getNivelMinimo());
         
-        return nivelUsuario >= nivelMinimo;
+        return nivelUsuario.getValor() >= nivelMinimo.getValor();
     }
 
     private boolean validarNivelMaximo(Usuario usuario, Partido partido) {
         if (partido.getCriterios().getNivelMaximo() == null) return true;
         
-        int nivelUsuario = convertirNivelANumero(usuario.getNivel());
-        int nivelMaximo = convertirNivelANumero(partido.getCriterios().getNivelMaximo());
+        Nivel nivelUsuario = usuario.getNivel();
+        Nivel nivelMaximo = Nivel.desde(partido.getCriterios().getNivelMaximo());
         
-        return nivelUsuario <= nivelMaximo;
-    }
-
-    private int convertirNivelANumero(String nivel) {
-        switch (nivel.toLowerCase()) {
-            case "principiante": return 1;
-            case "intermedio": return 2;
-            case "avanzado": return 3;
-            default: return 1;
-        }
+        return nivelUsuario.getValor() <= nivelMaximo.getValor();
     }
 } 

@@ -1,5 +1,6 @@
 package com.tp.uno.mas.encuentros.deportivos.model;
 
+import com.tp.uno.mas.encuentros.deportivos.model.nivel.Nivel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,14 +22,14 @@ public class CriteriosPartido {
                validarGenero(usuario.getGenero());
     }
 
-    public boolean validarNivel(String nivel) {
+    public boolean validarNivel(Nivel nivelUsuario) {
         if (nivelMinimo == null || nivelMaximo == null) return true;
         
-        int nivelUsuario = convertirNivelANumero(nivel);
-        int nivelMin = convertirNivelANumero(nivelMinimo);
-        int nivelMax = convertirNivelANumero(nivelMaximo);
+        Nivel nivelMin = Nivel.desde(nivelMinimo);
+        Nivel nivelMax = Nivel.desde(nivelMaximo);
         
-        return nivelUsuario >= nivelMin && nivelUsuario <= nivelMax;
+        return nivelUsuario.getValor() >= nivelMin.getValor() && 
+               nivelUsuario.getValor() <= nivelMax.getValor();
     }
 
     public boolean validarEdad(int edad) {
