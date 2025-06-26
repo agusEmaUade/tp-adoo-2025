@@ -80,7 +80,7 @@ public class Equipo {
 
         int sumaTotal = 0;
         for (Usuario jugador : jugadores) {
-            sumaTotal += convertirNivelANumero(jugador.getNivel());
+            sumaTotal += jugador.getNivel().getValor(); // Usar directamente el valor del Enum
         }
 
         double promedio = (double) sumaTotal / jugadores.size();

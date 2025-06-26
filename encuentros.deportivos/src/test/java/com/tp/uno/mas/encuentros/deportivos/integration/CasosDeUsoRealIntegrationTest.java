@@ -91,7 +91,7 @@ class CasosDeUsoRealIntegrationTest {
         // 4. Verificar que solo se agregaron usuarios que cumplen criterios
         assertTrue(jugadoresAgregados.size() > 0);
         for (Usuario jugador : jugadoresAgregados) {
-            assertTrue(jugador.getNivel().equals("intermedio") || jugador.getNivel().equals("avanzado"));
+            assertTrue(jugador.getNivel().toString().equals("intermedio") || jugador.getNivel().toString().equals("avanzado"));
             assertTrue(jugador.getEdad() >= 20 && jugador.getEdad() <= 40);
         }
         
@@ -268,7 +268,7 @@ class CasosDeUsoRealIntegrationTest {
             if (gestorPartido.agregarJugador(partido, usuario)) {
                 jugadoresAgregados++;
                 // Verificar que cumple todos los criterios
-                assertEquals("avanzado", usuario.getNivel());
+                assertEquals("avanzado", usuario.getNivel().toString());
                 assertEquals("masculino", usuario.getGenero());
                 assertTrue(usuario.getEdad() >= 28 && usuario.getEdad() <= 32);
             }

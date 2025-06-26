@@ -187,8 +187,9 @@ class RequerimientosEspecificosTest {
         // Verificar que tenemos usuarios de todos los niveles
         List<String> nivelesEncontrados = new ArrayList<>();
         for (Usuario usuario : usuariosVariados) {
-            if (!nivelesEncontrados.contains(usuario.getNivel())) {
-                nivelesEncontrados.add(usuario.getNivel());
+            String nivelNombre = usuario.getNivel().toString();
+            if (!nivelesEncontrados.contains(nivelNombre)) {
+                nivelesEncontrados.add(nivelNombre);
             }
         }
         

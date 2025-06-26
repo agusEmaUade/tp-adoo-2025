@@ -54,7 +54,7 @@ public class EmparejamientoPorHistorial implements EstrategiaEmparejamiento {
         
         // Simular algunos partidos basados en el nivel del usuario
         int cantPartidos = 0;
-        switch (usuario.getNivel().toLowerCase()) {
+        switch (usuario.getNivel().getNombre().toLowerCase()) {
             case "principiante": cantPartidos = 2; break;
             case "intermedio": cantPartidos = 5; break;
             case "avanzado": cantPartidos = 10; break;
