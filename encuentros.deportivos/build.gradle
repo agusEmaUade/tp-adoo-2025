@@ -19,8 +19,24 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	implementation 'com.resend:resend-java:3.1.0'
+
+	// Lombok para eliminar getters/setters con anotaciones
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testCompileOnly 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+	
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// Task para ejecutar la demo
+task runDemo(type: JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass = 'com.tp.uno.mas.encuentros.deportivos.demo.DemoSistemaEncuentros'
 }
 
 tasks.named('test') {

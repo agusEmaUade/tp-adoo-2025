@@ -4,12 +4,7 @@ config:
 id: ca1156c1-1c52-4377-a4e9-8b4ec3c6e6d5
 ---
 classDiagram
-    direction TB
-    class Emparejador {
-        - estrategia: EstrategiaEmparejamiento
-        + emparejarJugadores(partido: Partido): Equipo
-        + cambiarEstrategia(nuevaEstrategia: EstrategiaEmparejamiento)
-    }
+    
     class Usuario {
         -nombre: string
         -email: string
@@ -18,6 +13,8 @@ classDiagram
         %% principiante, intermedio, avanzado
         -nivel: string 
         -ubicacion: Ubicacion
+        -edad: int
+        -genero: string
     }
     class Partido {
         -fecha: string
@@ -36,6 +33,9 @@ classDiagram
         + tieneCriterios(): boolean
         + aplicarCriterios(criterios: CriteriosPartido)
         + quitarCriterios()
+        + puedeAgregarJugador(usuario: Usuario): boolean
+        + agregarJugadorAEquipo(usuario: Usuario, indiceEquipo: int)
+        + crearEquipo(nombreEquipo: string, maxJugadores: int)
     }
     
     class CriteriosPartido {
@@ -49,13 +49,13 @@ classDiagram
         + validarNivel(nivel: string): boolean
         + validarEdad(edad: int): boolean
         + validarGenero(genero: string): boolean
-        + validarUbicacion(ubicacion: Ubicacion): boolean
+        + validarUbicacion(ubicacion1: Ubicacion, ubicacion2: Ubicacion): boolean
     }
     
     class GestorPartido {
         -notificacionManager: NotificacionManager
         -emparejador: Emparejador
-        + crearPartido(datos: DatosPartido): Partido
+        + crearPartido(factory: PartidoFactory, fecha: string, ubicacion: Ubicacion, organizador: Usuario): Partido
         + agregarJugador(partido: Partido, usuario: Usuario): boolean
         + confirmarPartido(partido: Partido): boolean
         + cancelarPartido(partido: Partido): boolean
@@ -79,7 +79,7 @@ classDiagram
             + puedeConfirmar(): boolean
             + puedeCancelar(): boolean
             + puedeIniciar(): boolean
-            + puedesFinalizar(): boolean
+            + puedeFinalizar(): boolean
             + getNombreEstado(): string
         }
         
@@ -194,6 +194,12 @@ classDiagram
     }
     
     namespace PatronStrategy {
+        class Emparejador {
+            - estrategia: EstrategiaEmparejamiento
+            + emparejarJugadores(jugadoresDisponibles: list~Usuario~, partido: Partido): Equipo
+            + cambiarEstrategia(nuevaEstrategia: EstrategiaEmparejamiento)
+            + esCompatible(usuario: Usuario, partido: Partido): boolean
+        }
         class EstrategiaEmparejamiento {
             <<interface>>
             + emparejar(jugadoresDisponibles: list~Usuario~, partido: Partido): Equipo
@@ -337,6 +343,7 @@ classDiagram
     GestorPartido --> Partido : gestiona
     GestorPartido --> Emparejador : usa
     GestorPartido --> NotificacionManager : usa
+    GestorPartido --> PartidoFactory : usa
     Equipo --> Usuario : contiene
 
     Partido "1" --> "1" Ubicacion
