@@ -4,7 +4,6 @@ import com.tp.uno.mas.encuentros.deportivos.observer.EventoPartido;
 import com.tp.uno.mas.encuentros.deportivos.observer.NotificacionManager;
 import com.tp.uno.mas.encuentros.deportivos.state.*;
 import com.tp.uno.mas.encuentros.deportivos.factory.PartidoFactory;
-import java.util.List;
 
 public class GestorPartido {
     private NotificacionManager notificacionManager;

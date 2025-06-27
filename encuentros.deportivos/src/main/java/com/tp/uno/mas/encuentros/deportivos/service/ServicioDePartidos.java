@@ -2,12 +2,10 @@ package com.tp.uno.mas.encuentros.deportivos.service;
 
 import com.tp.uno.mas.encuentros.deportivos.adapter.FirebaseAdapter;
 import com.tp.uno.mas.encuentros.deportivos.adapter.JavaMailAdapter;
-import com.tp.uno.mas.encuentros.deportivos.factory.*;
 import com.tp.uno.mas.encuentros.deportivos.model.*;
 import com.tp.uno.mas.encuentros.deportivos.observer.EmailNotificador;
 import com.tp.uno.mas.encuentros.deportivos.observer.NotificacionManager;
 import com.tp.uno.mas.encuentros.deportivos.observer.PushNotificador;
-import com.tp.uno.mas.encuentros.deportivos.strategy.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +24,7 @@ public class ServicioDePartidos {
         this.partidosDisponibles = new ArrayList<>();
         this.notificacionManager = configurarNotificaciones();
         this.gestorPartido = new GestorPartido(notificacionManager);
-        this.servicioProgramador = new ServicioProgramador(this.gestorPartido, new VerificadorHorarios());
+        this.servicioProgramador = new ServicioProgramador(this.gestorPartido);
     }
 
     private NotificacionManager configurarNotificaciones() {

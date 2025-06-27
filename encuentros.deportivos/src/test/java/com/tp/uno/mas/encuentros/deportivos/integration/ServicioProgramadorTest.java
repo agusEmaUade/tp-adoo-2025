@@ -25,7 +25,7 @@ class ServicioProgramadorTest {
     @BeforeEach
     void setUp() {
         gestorPartido = new GestorPartido(new NotificacionManager());
-        servicioProgramador = new ServicioProgramador(gestorPartido, new VerificadorHorarios());
+        servicioProgramador = new ServicioProgramador(gestorPartido);
         organizador = new Usuario("Test", "test@test.com", "pass", "tenis", "intermedio", new Ubicacion(), 25, "mixto");
     }
 

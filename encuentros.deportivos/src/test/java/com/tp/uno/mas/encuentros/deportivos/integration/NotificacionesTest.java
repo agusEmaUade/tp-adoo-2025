@@ -294,7 +294,6 @@ class NotificacionesTest {
         
         public int getPushesEnviados() { return pushesEnviados; }
         public String getUltimoPush() { return ultimoPush; }
-        public List<String> getTodosLosPushes() { return new ArrayList<>(todosLosPushes); }
         public void limpiar() {
             pushesEnviados = 0;
             ultimoPush = "";

@@ -1,6 +1,5 @@
 package com.tp.uno.mas.encuentros.deportivos.model.nivel;
 
-import com.tp.uno.mas.encuentros.deportivos.model.Partido;
 
 /**
  * Enum para niveles de habilidad de los usuarios
@@ -55,17 +54,6 @@ public enum Nivel {
             return false;
         }
         return true;
-    }
-    
-    public boolean puedeUnirseA(Partido partido) {
-        if (partido.getCriterios() == null) return true;
-        
-        Nivel minimo = partido.getCriterios().getNivelMinimo() != null ? 
-                      Nivel.desde(partido.getCriterios().getNivelMinimo()) : null;
-        Nivel maximo = partido.getCriterios().getNivelMaximo() != null ? 
-                      Nivel.desde(partido.getCriterios().getNivelMaximo()) : null;
-        
-        return this.estaEnRango(minimo, maximo);
     }
     
     public String obtenerSugerencias() {

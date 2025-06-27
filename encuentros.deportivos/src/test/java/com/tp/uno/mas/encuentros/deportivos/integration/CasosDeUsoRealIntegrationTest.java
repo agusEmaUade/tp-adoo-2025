@@ -5,7 +5,6 @@ import com.tp.uno.mas.encuentros.deportivos.factory.*;
 import com.tp.uno.mas.encuentros.deportivos.model.*;
 import com.tp.uno.mas.encuentros.deportivos.observer.*;
 import com.tp.uno.mas.encuentros.deportivos.state.*;
-import com.tp.uno.mas.encuentros.deportivos.strategy.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -130,7 +129,6 @@ class CasosDeUsoRealIntegrationTest {
         // 2. Buscar jugadores cercanos
         List<Partido> partidos = new ArrayList<>();
         partidos.add(partido);
-        List<Partido> partidosCercanos = buscadorPartidos.buscarPartidosCercanos(partidos, organizador, 5.0);
         
         // 3. Agregar usuarios cercanos
         gestorPartido.agregarJugador(partido, organizador); // Roberto (organizador)

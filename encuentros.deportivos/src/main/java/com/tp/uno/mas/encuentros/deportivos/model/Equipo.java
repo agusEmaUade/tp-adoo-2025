@@ -97,14 +97,6 @@ public class Equipo {
         return cantidad <= maxJugadores;
     }
 
-    private int convertirNivelANumero(String nivel) {
-        switch (nivel.toLowerCase()) {
-            case "principiante": return 1;
-            case "intermedio": return 2;
-            case "avanzado": return 3;
-            default: return 1;
-        }
-    }
 
     private String convertirNumeroANivel(double numero) {
         if (numero <= 1.3) return "principiante";

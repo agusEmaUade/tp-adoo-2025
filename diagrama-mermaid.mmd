@@ -4,38 +4,70 @@ config:
 id: ca1156c1-1c52-4377-a4e9-8b4ec3c6e6d5
 ---
 classDiagram
-    
+
     class Usuario {
         -nombre: string
         -email: string
         -contraseña: string
         -deporteFavorito: string
-        %% principiante, intermedio, avanzado
-        -nivel: string 
+        -nivel: Nivel
         -ubicacion: Ubicacion
         -edad: int
         -genero: string
+        -historialPartidos: list~Partido~
+        +agregarAPartidoHistorial(partido: Partido)
     }
+
+    class Nivel {
+        <<enumeration>>
+        +PRINCIPIANTE
+        +INTERMEDIO
+        +AVANZADO
+        + desde(texto: string): Nivel
+        + esCompatibleCon(otro: Nivel): boolean
+        + estaEnRango(minimo: Nivel, maximo: Nivel): boolean
+    }
+    
+    class ServicioDePartidos {
+      -buscadorPartidos: BuscadorPartidos
+      -partidosDisponibles: list~Partido~
+      -notificacionManager: NotificacionManager
+      -gestorPartido: GestorPartido
+      -servicioProgramador: ServicioProgramador
+      + registrarPartido(partido: Partido)
+      + buscarPartidosCercanos(usuario: Usuario, radioKm: double): list~Partido~
+      + buscarPorDeporte(usuario: Usuario, deporte: string): list~Partido~
+    }
+
+    class GestorPartido {
+        -notificacionManager: NotificacionManager
+        + crearPartido(factory: PartidoFactory, fecha: string, ubicacion: Ubicacion, organizador: Usuario): Partido
+        + agregarJugador(partido: Partido, usuario: Usuario): boolean
+        + confirmarPartido(partido: Partido): boolean
+        + cancelarPartido(partido: Partido): boolean
+        + iniciarPartido(partido: Partido): boolean
+        + finalizarPartido(partido: Partido): boolean
+    }
+
+    class BuscadorPartidos {
+        -estrategiasActivas: list~EstrategiaBusqueda~
+        + buscarPartidos(partidos: list~Partido~, usuario: Usuario): list~Partido~
+        + buscarPartidosCercanos(partidosDisponibles: list~Partido~, usuario: Usuario, radioKm: double): list~Partido~
+        + buscarPartidosPorDeporte(partidosDisponibles: list~Partido~, usuario: Usuario, deporte: string): list~Partido~
+        + agregarEstrategia(estrategia: EstrategiaBusqueda)
+    }
+    
     class Partido {
         -fecha: string
         -deporte: string
-        -cantJugadoresRequeridos: int
-        -duracion: int
         -estadoActual: EstadoPartido
-        -equipos: list~Equipo~
-        -ubicacion: Ubicacion
         -organizador: Usuario
         -criterios: CriteriosPartido
         + cambiarEstado(nuevoEstado: EstadoPartido)
-        + getEstado(): EstadoPartido
+        + agregarJugador(usuario: Usuario): boolean
         + estaCompleto(): boolean
         + puedeIniciar(): boolean
-        + tieneCriterios(): boolean
         + aplicarCriterios(criterios: CriteriosPartido)
-        + quitarCriterios()
-        + puedeAgregarJugador(usuario: Usuario): boolean
-        + agregarJugadorAEquipo(usuario: Usuario, indiceEquipo: int)
-        + crearEquipo(nombreEquipo: string, maxJugadores: int)
     }
     
     class CriteriosPartido {
@@ -46,29 +78,23 @@ classDiagram
         -genero: string
         -radioMaximo: float
         + cumpleCriterios(usuario: Usuario): boolean
-        + validarNivel(nivel: string): boolean
-        + validarEdad(edad: int): boolean
-        + validarGenero(genero: string): boolean
-        + validarUbicacion(ubicacion1: Ubicacion, ubicacion2: Ubicacion): boolean
-    }
-    
-    class GestorPartido {
-        -notificacionManager: NotificacionManager
-        -emparejador: Emparejador
-        + crearPartido(factory: PartidoFactory, fecha: string, ubicacion: Ubicacion, organizador: Usuario): Partido
-        + agregarJugador(partido: Partido, usuario: Usuario): boolean
-        + confirmarPartido(partido: Partido): boolean
-        + cancelarPartido(partido: Partido): boolean
-        + iniciarPartido(partido: Partido): boolean
-        + finalizarPartido(partido: Partido): boolean
-        - validarOperacion(partido: Partido, operacion: string): boolean
-        - notificarEvento(partido: Partido, evento: EventoPartido)
     }
 
+    class ServicioProgramador {
+      -gestorPartido: GestorPartido
+      -verificadorHorarios: VerificadorHorarios
+      + verificarYActualizarPartidos(partidos: list~Partido~)
+    }
+
+    class VerificadorHorarios {
+      + esHoraDeIniciar(partido: Partido): boolean
+    }
+    
     class Ubicacion {
         -latitud: float
         -longitud: float
         -radio: float
+        + calcularDistancia(otra: Ubicacion): double
     }
     
     namespace PatronState {
@@ -82,155 +108,89 @@ classDiagram
             + puedeFinalizar(): boolean
             + getNombreEstado(): string
         }
-        
         class NecesitamosJugadores {
-            + manejarCambioEstado(partido: Partido)
-            + puedeAgregarJugador(): boolean
-            + puedeConfirmar(): boolean
-            + puedeCancelar(): boolean
-            + puedeIniciar(): boolean
-            + puedeFinalizar(): boolean
-            + getNombreEstado(): string
+           + manejarCambioEstado(partido: Partido)
         }
-        
         class PartidoArmado {
-            + manejarCambioEstado(partido: Partido)
-            + puedeAgregarJugador(): boolean
-            + puedeConfirmar(): boolean
-            + puedeCancelar(): boolean
-            + puedeIniciar(): boolean
-            + puedeFinalizar(): boolean
-            + getNombreEstado(): string
+           + manejarCambioEstado(partido: Partido)
         }
-        
         class Confirmado {
-            + manejarCambioEstado(partido: Partido)
-            + puedeAgregarJugador(): boolean
-            + puedeConfirmar(): boolean
-            + puedeCancelar(): boolean
-            + puedeIniciar(): boolean
-            + puedeFinalizar(): boolean
-            + getNombreEstado(): string
+           + manejarCambioEstado(partido: Partido)
         }
-        
         class EnJuego {
-            + manejarCambioEstado(partido: Partido)
-            + puedeAgregarJugador(): boolean
-            + puedeConfirmar(): boolean
-            + puedeCancelar(): boolean
-            + puedeIniciar(): boolean
-            + puedeFinalizar(): boolean
-            + getNombreEstado(): string
+           + manejarCambioEstado(partido: Partido)
         }
-        
         class Finalizado {
-            + manejarCambioEstado(partido: Partido)
-            + puedeAgregarJugador(): boolean
-            + puedeConfirmar(): boolean
-            + puedeCancelar(): boolean
-            + puedeIniciar(): boolean
-            + puedeFinalizar(): boolean
-            + getNombreEstado(): string
+           + manejarCambioEstado(partido: Partido)
         }
-        
         class Cancelado {
-            + manejarCambioEstado(partido: Partido)
-            + puedeAgregarJugador(): boolean
-            + puedeConfirmar(): boolean
-            + puedeCancelar(): boolean
-            + puedeIniciar(): boolean
-            + puedeFinalizar(): boolean
-            + getNombreEstado(): string
+           + manejarCambioEstado(partido: Partido)
         }
     }
-    
-    
     
     class Equipo {
         - nombre: string
         - jugadores: list~Usuario~
         - capitan: Usuario
-        - nivelPromedio: string
-        - fechaCreacion: string
-        - maxJugadores: int
         + agregarJugador(jugador: Usuario)
-        + eliminarJugador(jugador: Usuario)
-        + cantidadJugadores(): int
         + estaCompleto(): boolean
-        + puedeAgregarJugador(): boolean
-        + asignarCapitan(usuario: Usuario)
-        + obtenerCapitan(): Usuario
-        + calcularNivelPromedio(): string
-        + obtenerJugadores(): list~Usuario~
-        + validarCapacidad(cantidad: int): boolean
     }
     
     namespace PatronFactory {
         class PartidoFactory {
             <<abstract>>
-            + crearPartido(fecha: string, ubicacion: Ubicacion): Partido
+            + crearPartido(fecha: string, ubicacion: Ubicacion, organizador: Usuario): Partido
             + configurarReglas(partido: Partido)
+            + crearPartidoCompleto(fecha: string, ubicacion: Ubicacion, organizador: Usuario): Partido
         }
         
         class FutbolFactory {
-            + crearPartido(fecha: string, ubicacion: Ubicacion): Partido
+            + crearPartido(fecha: string, ubicacion: Ubicacion, organizador: Usuario): Partido
             + configurarReglas(partido: Partido)
         }
         
         class BasquetFactory {
-            + crearPartido(fecha: string, ubicacion: Ubicacion): Partido
+            + crearPartido(fecha: string, ubicacion: Ubicacion, organizador: Usuario): Partido
             + configurarReglas(partido: Partido)
         }
         
         class VoleyFactory {
-            + crearPartido(fecha: string, ubicacion: Ubicacion): Partido
+            + crearPartido(fecha: string, ubicacion: Ubicacion, organizador: Usuario): Partido
             + configurarReglas(partido: Partido)
         }
         
         class TenisFactory {
-            + crearPartido(fecha: string, ubicacion: Ubicacion): Partido
+            + crearPartido(fecha: string, ubicacion: Ubicacion, organizador: Usuario): Partido
             + configurarReglas(partido: Partido)
         }
     }
     
     namespace PatronStrategy {
-        class Emparejador {
-            - estrategia: EstrategiaEmparejamiento
-            + emparejarJugadores(jugadoresDisponibles: list~Usuario~, partido: Partido): Equipo
-            + cambiarEstrategia(nuevaEstrategia: EstrategiaEmparejamiento)
-            + esCompatible(usuario: Usuario, partido: Partido): boolean
-        }
-        class EstrategiaEmparejamiento {
+        class EstrategiaBusqueda {
             <<interface>>
-            + emparejar(jugadoresDisponibles: list~Usuario~, partido: Partido): Equipo
-            + esCompatible(usuario: Usuario, partido: Partido): boolean
+            + buscar(partidos: list~Partido~, usuario: Usuario): list~Partido~
+            + cumpleCriterios(partido: Partido, usuario: Usuario): boolean
         }
         
-        class EmparejamientoPorNivel {
-            + emparejar(jugadoresDisponibles: list~Usuario~, partido: Partido): Equipo
-            + esCompatible(usuario: Usuario, partido: Partido): boolean
-            - validarNivelMinimo(usuario: Usuario, partido: Partido): boolean
-            - validarNivelMaximo(usuario: Usuario, partido: Partido): boolean
+        class BusquedaPorNivel {
+            + buscar(partidos: list~Partido~, usuario: Usuario): list~Partido~
+            + cumpleCriterios(partido: Partido, usuario: Usuario): boolean
         }
-        
-        class EmparejamientoPorCercania {
-            + emparejar(jugadoresDisponibles: list~Usuario~, partido: Partido): Equipo
-            + esCompatible(usuario: Usuario, partido: Partido): boolean
-            - calcularDistancia(ubicacion1: Ubicacion, ubicacion2: Ubicacion): float
-            - filtrarPorRadio(jugadores: list~Usuario~, ubicacion: Ubicacion): list~Usuario~
+        class BusquedaPorCercania {
+            + buscar(partidos: list~Partido~, usuario: Usuario): list~Partido~
+            + cumpleCriterios(partido: Partido, usuario: Usuario): boolean
         }
-        
-        class EmparejamientoPorHistorial {
-            + emparejar(jugadoresDisponibles: list~Usuario~, partido: Partido): Equipo
-            + esCompatible(usuario: Usuario, partido: Partido): boolean
-            - obtenerHistorial(usuario: Usuario): list~Partido~
-            - calcularCompatibilidad(usuario1: Usuario, usuario2: Usuario): float
+        class BusquedaPorDeporte {
+            + buscar(partidos: list~Partido~, usuario: Usuario): list~Partido~
+            + cumpleCriterios(partido: Partido, usuario: Usuario): boolean
         }
-        
-        class EmparejamientoMixto {
-            + emparejar(jugadoresDisponibles: list~Usuario~, partido: Partido): Equipo
-            + esCompatible(usuario: Usuario, partido: Partido): boolean
-            - combinarCriterios(jugadores: list~Usuario~, partido: Partido): list~Usuario~
+        class BusquedaPorHistorial {
+            + buscar(partidos: list~Partido~, usuario: Usuario): list~Partido~
+            + cumpleCriterios(partido: Partido, usuario: Usuario): boolean
+        }
+        class BusquedaMixta {
+            + buscar(partidos: list~Partido~, usuario: Usuario): list~Partido~
+            + cumpleCriterios(partido: Partido, usuario: Usuario): boolean
         }
     }
     
@@ -246,17 +206,10 @@ classDiagram
         }
         
         class JavaMailAdapter {
-            - session: Session
             + enviarEmail(destinatario: string, asunto: string, mensaje: string): boolean
-            - configurarSMTP(): Properties
-            - crearMensajeEmail(destinatario: string, asunto: string, mensaje: string): MimeMessage
         }
-        
         class FirebaseAdapter {
-            - firebaseApp: FirebaseApp
             + enviarPush(usuario: Usuario, titulo: string, mensaje: string): boolean
-            - obtenerTokenUsuario(usuario: Usuario): string
-            - construirMensajeFirebase(token: string, titulo: string, mensaje: string): Message
         }
     }
     
@@ -264,18 +217,16 @@ classDiagram
         class NotificacionObserver {
             <<interface>>
             + notificar(evento: EventoPartido, partido: Partido)
+            + notificarUsuario(usuario: Usuario, titulo: string, mensaje: string)
         }
         
         class EmailNotificador {
-            - servicioEmail: ServicioEmail
             + notificar(evento: EventoPartido, partido: Partido)
-            - construirMensaje(evento: EventoPartido, partido: Partido): string
+            + notificarUsuario(usuario: Usuario, titulo: string, mensaje: string)
         }
-        
         class PushNotificador {
-            - servicioPush: ServicioPush
             + notificar(evento: EventoPartido, partido: Partido)
-            - construirMensajePush(evento: EventoPartido, partido: Partido): string
+            + notificarUsuario(usuario: Usuario, titulo: string, mensaje: string)
         }
         
         class NotificacionManager {
@@ -283,7 +234,7 @@ classDiagram
             + agregarObserver(observer: NotificacionObserver)
             + eliminarObserver(observer: NotificacionObserver)
             + notificarObservers(evento: EventoPartido, partido: Partido)
-            + suscribirUsuario(usuario: Usuario, tipoNotificacion: string)
+            + notificarUsuarioEspecifico(usuario: Usuario, titulo: string, mensaje: string)
         }
         
         class EventoPartido {
@@ -298,7 +249,7 @@ classDiagram
         }
     }
     
-    %% Relaciones del patrón State
+    %% Relaciones de Patrones
     EstadoPartido <|.. NecesitamosJugadores
     EstadoPartido <|.. PartidoArmado
     EstadoPartido <|.. Confirmado
@@ -306,51 +257,53 @@ classDiagram
     EstadoPartido <|.. Finalizado
     EstadoPartido <|.. Cancelado
     
-    %% Relación de composición - Partido tiene un estado
-    Partido *-- EstadoPartido : contiene
-    
-    %% Relaciones del patrón Factory
     PartidoFactory <|-- FutbolFactory
     PartidoFactory <|-- BasquetFactory
     PartidoFactory <|-- VoleyFactory
     PartidoFactory <|-- TenisFactory
     
-    PartidoFactory ..> Partido : crea
+    EstrategiaBusqueda <|.. BusquedaPorNivel
+    EstrategiaBusqueda <|.. BusquedaPorCercania
+    EstrategiaBusqueda <|.. BusquedaPorDeporte
+    EstrategiaBusqueda <|.. BusquedaPorHistorial
+    EstrategiaBusqueda <|.. BusquedaMixta
     
-    %% Relaciones del patrón Strategy
-    EstrategiaEmparejamiento <|.. EmparejamientoPorNivel
-    EstrategiaEmparejamiento <|.. EmparejamientoPorCercania
-    EstrategiaEmparejamiento <|.. EmparejamientoPorHistorial
-    EstrategiaEmparejamiento <|.. EmparejamientoMixto
-    
-    Emparejador --> EstrategiaEmparejamiento : usa
-    
-    %% Relaciones del patrón Adapter
     ServicioEmail <|.. JavaMailAdapter
     ServicioPush <|.. FirebaseAdapter
     
-    %% Relaciones del patrón Observer
     NotificacionObserver <|.. EmailNotificador
     NotificacionObserver <|.. PushNotificador
+    
+    %% Relaciones de Composición / Agregación
+    ServicioDePartidos "1" *-- "1" GestorPartido
+    ServicioDePartidos "1" *-- "1" BuscadorPartidos
+    ServicioDePartidos "1" *-- "1" NotificacionManager
+    ServicioDePartidos "1" *-- "1" ServicioProgramador
+    
+    GestorPartido "1" *-- "1" NotificacionManager
+    
+    BuscadorPartidos o-- EstrategiaBusqueda : usa
+
+    ServicioProgramador "1" *-- "1" VerificadorHorarios
+    ServicioProgramador "1" *-- "1" GestorPartido
+    
+    Partido *-- EstadoPartido : contiene
+    Partido "1" --> "1" Usuario : organizador
+    Partido "1" --> "*" Equipo : contiene
+    Partido "0..1" --> "0..1" CriteriosPartido
     
     EmailNotificador --> ServicioEmail : usa
     PushNotificador --> ServicioPush : usa
     
-    NotificacionManager --> NotificacionObserver : notifica
-    NotificacionManager --> EventoPartido : maneja
+    NotificacionManager o-- NotificacionObserver : notifica
     
-    %% Otras relaciones
-    GestorPartido --> Partido : gestiona
-    GestorPartido --> Emparejador : usa
-    GestorPartido --> NotificacionManager : usa
-    GestorPartido --> PartidoFactory : usa
-    Equipo --> Usuario : contiene
-
-    Partido "1" --> "1" Ubicacion
-    Partido "1" --> "*" Equipo: tiene equipos
-    Partido "1" --> "1" Usuario: organizador
-    Partido "0..1" --> "0..1" CriteriosPartido: puede tener criterios
-
-    Usuario "1" --> "1" Ubicacion : tiene
+    %% Relaciones de Uso (Dependencias)
+    DemoSistemaEncuentros ..> ServicioDePartidos : usa
+    GestorPartido ..> Partido : gestiona
+    GestorPartido ..> PartidoFactory : usa
+    BuscadorPartidos ..> Partido : busca
+    
+    Usuario --> Nivel
+    Usuario --> Ubicacion
 
     
