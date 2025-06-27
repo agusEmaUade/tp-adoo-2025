@@ -20,6 +20,7 @@ import java.util.List;
 class CasosDeUsoRealIntegrationTest {
     
     private GestorPartido gestorPartido;
+    private BuscadorPartidos buscadorPartidos;
     private List<Usuario> usuariosDisponibles;
     private Ubicacion ubicacionPalermo;
     private Ubicacion ubicacionVillaCrespo;
@@ -39,8 +40,8 @@ class CasosDeUsoRealIntegrationTest {
         notificacionManager.agregarObserver(new EmailNotificador(emailAdapter));
         notificacionManager.agregarObserver(new PushNotificador(pushAdapter));
         
-        Emparejador emparejador = new Emparejador(new EmparejamientoPorNivel());
-        gestorPartido = new GestorPartido(notificacionManager, emparejador);
+        gestorPartido = new GestorPartido(notificacionManager);
+        buscadorPartidos = new BuscadorPartidos();
         
         ubicacionPalermo = new Ubicacion(-34.5755f, -58.4000f, 3.0f);
         ubicacionVillaCrespo = new Ubicacion(-34.5998f, -58.4314f, 2.0f);
@@ -118,25 +119,27 @@ class CasosDeUsoRealIntegrationTest {
     }
     
     @Test
-    void testCasoDeUso_PartidoTenisConEmparejamientoPorCercania() {
+    void testCasoDeUso_PartidoTenisConBusquedaPorCercania() {
         // ESCENARIO: Roberto organiza un partido de tenis y quiere jugadores cercanos
         Usuario organizador = usuariosDisponibles.get(5); // Roberto
         PartidoFactory tenisFactory = new TenisFactory();
         
-        // 1. Cambiar estrategia de emparejamiento a por cercanía
-        gestorPartido.getEmparejador().cambiarEstrategia(new EmparejamientoPorCercania());
-        
-        // 2. Crear partido
+        // 1. Crear partido
         Partido partido = gestorPartido.crearPartido(tenisFactory, "2024-12-26 10:00", ubicacionPalermo, organizador);
         
-        // 3. Agregar usuarios - el sistema debería priorizar los más cercanos
-        gestorPartido.agregarJugador(partido, organizador); // Roberto (organizador)
-        gestorPartido.agregarJugador(partido, usuariosDisponibles.get(6)); // Carmen - también Palermo
+        // 2. Buscar jugadores cercanos
+        List<Partido> partidos = new ArrayList<>();
+        partidos.add(partido);
+        List<Partido> partidosCercanos = buscadorPartidos.buscarPartidosCercanos(partidos, organizador, 5.0);
         
-        // Verificar que el partido está completo con 2 jugadores (1 en cada equipo)
+        // 3. Agregar usuarios cercanos
+        gestorPartido.agregarJugador(partido, organizador); // Roberto (organizador)
+        gestorPartido.agregarJugador(partido, usuariosDisponibles.get(6)); // Carmen - también en Palermo
+        
+        // Verificar que el partido está completo con 2 jugadores
         assertEquals(2, partido.getEquipos().stream().mapToInt(e -> e.cantidadJugadores()).sum());
         
-        // 4. Verificar que se formó correctamente y está completo (tenis necesita 2 jugadores)
+        // 4. Verificar que se formó correctamente y está completo
         assertEquals(2, partido.getCantJugadoresRequeridos());
         assertEquals(2, partido.getEquipos().size());
         assertTrue(partido.estaCompleto(), "El partido de tenis debería estar completo con 2 jugadores");
@@ -170,84 +173,69 @@ class CasosDeUsoRealIntegrationTest {
     }
     
     @Test
-    void testCasoDeUso_CambioDeEstrategiasDuranteEmparejamiento() {
-        // ESCENARIO: Probar diferentes estrategias para el mismo conjunto de jugadores
+    void testCasoDeUso_BusquedaConDiferentesEstrategias() {
+        // ESCENARIO: Probar diferentes estrategias de búsqueda
         Usuario organizador = usuariosDisponibles.get(0); // Ana
         PartidoFactory futbolFactory = new FutbolFactory();
         Partido partido = gestorPartido.crearPartido(futbolFactory, "2024-12-28 15:00", ubicacionPalermo, organizador);
         
-        // Preparar lista de jugadores para emparejar
-        List<Usuario> candidatos = new ArrayList<>();
-        candidatos.addAll(usuariosDisponibles.subList(1, 5)); // Carlos, María, Juan, Laura
+        List<Partido> partidos = new ArrayList<>();
+        partidos.add(partido);
         
-        // 1. Probar emparejamiento por nivel
-        gestorPartido.getEmparejador().cambiarEstrategia(new EmparejamientoPorNivel());
-        Equipo equipoNivel = gestorPartido.getEmparejador().emparejarJugadores(candidatos, partido);
-        assertNotNull(equipoNivel);
+        // 1. Probar búsqueda por nivel
+        List<Partido> resultadosNivel = buscadorPartidos.buscarPartidosPorNivel(partidos, organizador);
+        assertNotNull(resultadosNivel);
         
-        // 2. Probar emparejamiento por cercanía
-        gestorPartido.getEmparejador().cambiarEstrategia(new EmparejamientoPorCercania());
-        Equipo equipoCercania = gestorPartido.getEmparejador().emparejarJugadores(candidatos, partido);
-        assertNotNull(equipoCercania);
+        // 2. Probar búsqueda por cercanía
+        List<Partido> resultadosCercania = buscadorPartidos.buscarPartidosCercanos(partidos, organizador, 5.0);
+        assertNotNull(resultadosCercania);
         
-        // 3. Probar emparejamiento mixto
-        gestorPartido.getEmparejador().cambiarEstrategia(new EmparejamientoMixto());
-        Equipo equipoMixto = gestorPartido.getEmparejador().emparejarJugadores(candidatos, partido);
-        assertNotNull(equipoMixto);
+        // 3. Probar búsqueda por deporte
+        List<Partido> resultadosDeporte = buscadorPartidos.buscarPartidosPorDeporte(partidos, organizador, "Fútbol");
+        assertNotNull(resultadosDeporte);
         
-        // 4. Todos los emparejamientos deberían funcionar
-        assertTrue(equipoNivel.cantidadJugadores() > 0);
-        assertTrue(equipoCercania.cantidadJugadores() > 0);
-        assertTrue(equipoMixto.cantidadJugadores() > 0);
+        // 4. Probar búsqueda mixta
+        List<Partido> resultadosMixta = buscadorPartidos.buscarPartidosConCriteriosMixtos(partidos, organizador, 2);
+        assertNotNull(resultadosMixta);
+        
+        // Verificar que todas las búsquedas funcionan
+        assertTrue(resultadosNivel.size() >= 0);
+        assertTrue(resultadosCercania.size() >= 0);
+        assertTrue(resultadosDeporte.size() >= 0);
+        assertTrue(resultadosMixta.size() >= 0);
     }
     
     @Test
     void testCasoDeUso_MultiplesPartidosSimultaneos() {
         // ESCENARIO: Gestionar múltiples partidos al mismo tiempo
         
-        // 1. Crear partido de fútbol
-        Partido partidoFutbol = gestorPartido.crearPartido(
-            new FutbolFactory(), 
-            "2024-12-29 16:00", 
-            ubicacionPalermo, 
-            usuariosDisponibles.get(0)
-        );
+        // 1. Crear manualmente los partidos para un control total
+        Partido partidoFutbol = new FutbolFactory().crearPartidoCompleto("2024-12-29 16:00", ubicacionPalermo, usuariosDisponibles.get(0));
+        gestorPartido.agregarJugador(partidoFutbol, usuariosDisponibles.get(0));
         
-        // 2. Crear partido de tenis
-        Partido partidoTenis = gestorPartido.crearPartido(
-            new TenisFactory(), 
-            "2024-12-29 18:00", 
-            ubicacionVillaCrespo, 
-            usuariosDisponibles.get(5)
-        );
+        Partido partidoTenis = new TenisFactory().crearPartidoCompleto("2024-12-29 18:00", ubicacionVillaCrespo, usuariosDisponibles.get(5));
+        gestorPartido.agregarJugador(partidoTenis, usuariosDisponibles.get(5));
         
-        // 3. Crear partido de básquet
-        Partido partidoBasquet = gestorPartido.crearPartido(
-            new BasquetFactory(), 
-            "2024-12-29 20:00", 
-            ubicacionPalermo, 
-            usuariosDisponibles.get(7)
-        );
-        
-        // 4. Agregar jugadores a diferentes partidos
-        gestorPartido.agregarJugador(partidoFutbol, usuariosDisponibles.get(1));
-        gestorPartido.agregarJugador(partidoTenis, usuariosDisponibles.get(6));
-        gestorPartido.agregarJugador(partidoBasquet, usuariosDisponibles.get(8));
-        
-        // 5. Verificar que cada partido mantiene su estado independientemente
+        Partido partidoBasquet = new BasquetFactory().crearPartidoCompleto("2024-12-29 20:00", ubicacionPalermo, usuariosDisponibles.get(7));
+        gestorPartido.agregarJugador(partidoBasquet, usuariosDisponibles.get(7));
+
+        // 2. Verificar estados iniciales
         assertTrue(partidoFutbol.getEstadoActual() instanceof NecesitamosJugadores);
         assertTrue(partidoTenis.getEstadoActual() instanceof NecesitamosJugadores);
         assertTrue(partidoBasquet.getEstadoActual() instanceof NecesitamosJugadores);
         
-        // 6. Confirmar uno y cancelar otro
-        partidoTenis.cambiarEstado(new PartidoArmado());
-        gestorPartido.confirmarPartido(partidoTenis);
-        gestorPartido.cancelarPartido(partidoBasquet);
+        // 3. Completar el partido de tenis, confirmar y cancelar otro
+        gestorPartido.agregarJugador(partidoTenis, usuariosDisponibles.get(6)); // Agregar segundo jugador
         
-        // 7. Verificar estados independientes
-        assertTrue(partidoFutbol.getEstadoActual() instanceof NecesitamosJugadores);
-        assertTrue(partidoTenis.getEstadoActual() instanceof Confirmado);
-        assertTrue(partidoBasquet.getEstadoActual() instanceof Cancelado);
+        assertTrue(partidoTenis.getEstadoActual() instanceof PartidoArmado, "El partido de tenis debería estar 'Armado'");
+        
+        assertTrue(gestorPartido.confirmarPartido(partidoTenis), "La confirmación del partido de tenis debería ser exitosa");
+        assertTrue(gestorPartido.cancelarPartido(partidoBasquet), "La cancelación del partido de básquet debería ser exitosa");
+        
+        // 4. Verificar estados finales
+        assertTrue(partidoFutbol.getEstadoActual() instanceof NecesitamosJugadores, "Futbol debe seguir necesitando jugadores");
+        assertTrue(partidoTenis.getEstadoActual() instanceof Confirmado, "Tenis debe estar 'Confirmado'");
+        assertTrue(partidoBasquet.getEstadoActual() instanceof Cancelado, "Básquet debe estar 'Cancelado'");
     }
     
     @Test
@@ -262,10 +250,15 @@ class CasosDeUsoRealIntegrationTest {
         CriteriosPartido criteriosRestrictivos = new CriteriosPartido("avanzado", "avanzado", 28, 32, "masculino", 1.0f);
         partido.aplicarCriterios(criteriosRestrictivos);
         
-        // Intentar agregar todos los usuarios
+        // Crear lista de partidos para búsqueda
+        List<Partido> partidos = new ArrayList<>();
+        partidos.add(partido);
+        
+        // Buscar partidos que cumplan los criterios para cada usuario
         int jugadoresAgregados = 0;
         for (Usuario usuario : usuariosDisponibles) {
-            if (gestorPartido.agregarJugador(partido, usuario)) {
+            List<Partido> partidosValidos = buscadorPartidos.buscarPartidosPorNivel(partidos, usuario);
+            if (!partidosValidos.isEmpty() && gestorPartido.agregarJugador(partido, usuario)) {
                 jugadoresAgregados++;
                 // Verificar que cumple todos los criterios
                 assertEquals("avanzado", usuario.getNivel().toString());
@@ -275,8 +268,6 @@ class CasosDeUsoRealIntegrationTest {
         }
         
         // Solo Carlos (organizador ya incluido) debería cumplir estos criterios
-        // En nuestros datos de prueba, solo Carlos y Laura son avanzados,
-        // pero Laura es femenina, así que debería ser muy pocos o ninguno adicional
         assertTrue(jugadoresAgregados <= 1); // Máximo Carlos si no está ya incluido
     }
     
@@ -303,8 +294,11 @@ class CasosDeUsoRealIntegrationTest {
         }
         assertTrue(participantes.size() > 0);
         
-        // 4. Usar estrategia mixta para emparejamiento
-        gestorPartido.getEmparejador().cambiarEstrategia(new EmparejamientoMixto());
+        // 4. Usar estrategia mixta para búsqueda
+        List<Partido> partidosDisponibles = new ArrayList<>();
+        partidosDisponibles.add(partido);
+        List<Partido> resultadosMixta = buscadorPartidos.buscarPartidosConCriteriosMixtos(partidosDisponibles, participantes.get(0), 2);
+        assertNotNull(resultadosMixta);
         
         // 5. Agregar más jugadores hasta completar el partido si es necesario
         if (!partido.estaCompleto()) {

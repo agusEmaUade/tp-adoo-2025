@@ -6,7 +6,7 @@ public class Confirmado implements EstadoPartido {
     
     @Override
     public void manejarCambioEstado(Partido partido) {
-        // Un partido confirmado solo puede iniciar
+        // No hay transiciones automáticas desde este estado.
     }
 
     @Override

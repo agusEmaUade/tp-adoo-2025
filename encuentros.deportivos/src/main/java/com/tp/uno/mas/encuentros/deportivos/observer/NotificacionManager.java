@@ -29,9 +29,15 @@ public class NotificacionManager {
         }
     }
 
+    public void notificarUsuarioEspecifico(Usuario usuario, String titulo, String mensaje) {
+        for (NotificacionObserver observer : observers) {
+            observer.notificarUsuario(usuario, titulo, mensaje);
+        }
+    }
+
     public void suscribirUsuario(Usuario usuario, String tipoNotificacion) {
-        // Lógica para suscribir usuario a tipos específicos de notificaciones
-        System.out.println("Usuario " + usuario.getNombre() + " suscrito a notificaciones de tipo: " + tipoNotificacion);
+        // Lógica de suscripción (ej: guardar preferencia en base de datos)
+        System.out.println("Usuario " + usuario.getNombre() + " suscrito a notificaciones de tipo " + tipoNotificacion);
     }
 
     public List<NotificacionObserver> getObservers() {

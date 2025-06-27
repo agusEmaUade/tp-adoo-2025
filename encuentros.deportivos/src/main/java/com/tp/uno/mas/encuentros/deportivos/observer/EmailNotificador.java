@@ -2,6 +2,9 @@ package com.tp.uno.mas.encuentros.deportivos.observer;
 
 import com.tp.uno.mas.encuentros.deportivos.adapter.ServicioEmail;
 import com.tp.uno.mas.encuentros.deportivos.model.Partido;
+import com.tp.uno.mas.encuentros.deportivos.model.Usuario;
+
+import java.util.List;
 
 public class EmailNotificador implements NotificacionObserver {
     private ServicioEmail servicioEmail;
@@ -14,18 +17,16 @@ public class EmailNotificador implements NotificacionObserver {
     public void notificar(EventoPartido evento, Partido partido) {
         String asunto = construirAsunto(evento);
         String mensaje = construirMensaje(evento, partido);
-        
-        // Enviar email al organizador
-        if (partido.getOrganizador() != null) {
-            servicioEmail.enviarEmail(partido.getOrganizador().getEmail(), asunto, mensaje);
+        List<Usuario> participantes = partido.getJugadoresActuales();
+
+        for (Usuario participante : participantes) {
+            servicioEmail.enviarEmail(participante.getEmail(), asunto, mensaje);
         }
-        
-        // Enviar email a todos los jugadores
-        partido.getEquipos().forEach(equipo -> 
-            equipo.getJugadores().forEach(jugador -> 
-                servicioEmail.enviarEmail(jugador.getEmail(), asunto, mensaje)
-            )
-        );
+    }
+
+    @Override
+    public void notificarUsuario(Usuario usuario, String titulo, String mensaje) {
+        servicioEmail.enviarEmail(usuario.getEmail(), titulo, mensaje);
     }
 
     private String construirAsunto(EventoPartido evento) {

@@ -4,13 +4,12 @@ import com.tp.uno.mas.encuentros.deportivos.factory.TenisFactory;
 import com.tp.uno.mas.encuentros.deportivos.model.*;
 import com.tp.uno.mas.encuentros.deportivos.observer.NotificacionManager;
 import com.tp.uno.mas.encuentros.deportivos.state.*;
-import com.tp.uno.mas.encuentros.deportivos.strategy.EmparejamientoPorNivel;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-class PatronStateIntegrationTest {
+class CicloDeVidaPartidoTest {
     
     private GestorPartido gestorPartido;
     private Partido partido;
@@ -20,8 +19,7 @@ class PatronStateIntegrationTest {
     @BeforeEach
     void setUp() {
         NotificacionManager notificationManager = new NotificacionManager();
-        Emparejador emparejador = new Emparejador(new EmparejamientoPorNivel());
-        gestorPartido = new GestorPartido(notificationManager, emparejador);
+        gestorPartido = new GestorPartido(notificationManager);
         
         Ubicacion ubicacion = new Ubicacion(-34.6037f, -58.3816f, 5.0f);
         organizador = new Usuario("Organizador", "org@test.com", "123", "Tenis", "intermedio", ubicacion, 25, "masculino");
@@ -34,16 +32,15 @@ class PatronStateIntegrationTest {
     
     @Test
     void testTransicionesValidasDeEstados() {
-        // Estado inicial: NecesitamosJugadores
+        // Estado inicial: NecesitamosJugadores (con el organizador ya dentro)
         assertTrue(partido.getEstadoActual() instanceof NecesitamosJugadores);
-        
-        // Agregar jugadores para completar el partido (tenis necesita 2)
+        assertEquals(1, partido.getJugadoresActuales().size());
+
+        // Agregar el segundo jugador para completar el partido de tenis
         gestorPartido.agregarJugador(partido, jugador1);
-        gestorPartido.agregarJugador(partido, jugador2);
         
-        // Cambiar manualmente a PartidoArmado (en un caso real sería automático cuando se completa)
-        partido.cambiarEstado(new PartidoArmado());
-        assertTrue(partido.getEstadoActual() instanceof PartidoArmado);
+        // El estado debe cambiar automáticamente a PartidoArmado
+        assertTrue(partido.getEstadoActual() instanceof PartidoArmado, "El estado debió cambiar a PartidoArmado automáticamente.");
         
         // Confirmar → Confirmado
         assertTrue(gestorPartido.confirmarPartido(partido));
@@ -136,7 +133,7 @@ class PatronStateIntegrationTest {
     }
     
     @Test
-    void testEstadosCancelableYFinalNoPermitvenOperaciones() {
+    void testEstadosCancelableYFinalNoPermitenOperaciones() {
         // Estado Cancelado
         partido.cambiarEstado(new Cancelado());
         assertFalse(gestorPartido.agregarJugador(partido, jugador1));
@@ -156,20 +153,17 @@ class PatronStateIntegrationTest {
     
     @Test
     void testTransicionAutomaticaAlCompletarPartido() {
-        // Crear partido que requiere pocos jugadores para probar transición automática
+        // El partido de tenis necesita 2 jugadores. Se crea con 1 (el organizador).
+        assertEquals(1, partido.getJugadoresActuales().size());
         assertTrue(partido.getEstadoActual() instanceof NecesitamosJugadores);
+
+        // Agregar el segundo y último jugador
+        boolean agregado = gestorPartido.agregarJugador(partido, jugador1);
         
-        // Agregar jugadores (incluyendo el organizador)
-        gestorPartido.agregarJugador(partido, organizador); // Organizador como primer jugador
-        gestorPartido.agregarJugador(partido, jugador1); // Segundo jugador
-        
-        // Verificar que el partido está completo
-        int totalJugadoresDirecto = partido.getEquipos().stream().mapToInt(e -> e.cantidadJugadores()).sum();
-        assertEquals(2, totalJugadoresDirecto, "El partido de tenis debería tener exactamente 2 jugadores");
-        assertEquals(2, partido.getCantJugadoresRequeridos(), "El partido de tenis debería requerir exactamente 2 jugadores");
-        assertEquals(2, partido.getEquipos().size());
-        
-        // Test passed - el partido está completo con 2 jugadores como se esperaba
-        // En una implementación real, podría haber transición automática de estado
+        // Verificar que se agregó y que el estado cambió automáticamente
+        assertTrue(agregado);
+        assertEquals(2, partido.getJugadoresActuales().size());
+        assertTrue(partido.estaCompleto());
+        assertTrue(partido.getEstadoActual() instanceof PartidoArmado, "Al completarse, el estado debe ser PartidoArmado");
     }
 } 

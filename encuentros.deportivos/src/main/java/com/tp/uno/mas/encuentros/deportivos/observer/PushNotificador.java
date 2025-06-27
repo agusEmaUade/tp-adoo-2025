@@ -2,6 +2,9 @@ package com.tp.uno.mas.encuentros.deportivos.observer;
 
 import com.tp.uno.mas.encuentros.deportivos.adapter.ServicioPush;
 import com.tp.uno.mas.encuentros.deportivos.model.Partido;
+import com.tp.uno.mas.encuentros.deportivos.model.Usuario;
+
+import java.util.List;
 
 public class PushNotificador implements NotificacionObserver {
     private ServicioPush servicioPush;
@@ -14,18 +17,16 @@ public class PushNotificador implements NotificacionObserver {
     public void notificar(EventoPartido evento, Partido partido) {
         String titulo = construirTitulo(evento);
         String mensaje = construirMensajePush(evento, partido);
-        
-        // Enviar push al organizador
-        if (partido.getOrganizador() != null) {
-            servicioPush.enviarPush(partido.getOrganizador(), titulo, mensaje);
+        List<Usuario> participantes = partido.getJugadoresActuales();
+
+        for (Usuario participante : participantes) {
+            servicioPush.enviarPush(participante, titulo, mensaje);
         }
-        
-        // Enviar push a todos los jugadores
-        partido.getEquipos().forEach(equipo -> 
-            equipo.getJugadores().forEach(jugador -> 
-                servicioPush.enviarPush(jugador, titulo, mensaje)
-            )
-        );
+    }
+
+    @Override
+    public void notificarUsuario(Usuario usuario, String titulo, String mensaje) {
+        servicioPush.enviarPush(usuario, titulo, mensaje);
     }
 
     private String construirTitulo(EventoPartido evento) {

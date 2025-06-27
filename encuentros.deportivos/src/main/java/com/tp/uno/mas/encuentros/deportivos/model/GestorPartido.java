@@ -4,56 +4,43 @@ import com.tp.uno.mas.encuentros.deportivos.observer.EventoPartido;
 import com.tp.uno.mas.encuentros.deportivos.observer.NotificacionManager;
 import com.tp.uno.mas.encuentros.deportivos.state.*;
 import com.tp.uno.mas.encuentros.deportivos.factory.PartidoFactory;
+import java.util.List;
 
 public class GestorPartido {
     private NotificacionManager notificacionManager;
-    private Emparejador emparejador;
 
-    public GestorPartido(NotificacionManager notificacionManager, Emparejador emparejador) {
+    public GestorPartido(NotificacionManager notificacionManager) {
         this.notificacionManager = notificacionManager;
-        this.emparejador = emparejador;
     }
 
     public Partido crearPartido(PartidoFactory factory, String fecha, Ubicacion ubicacion, Usuario organizador) {
-        Partido partido = factory.crearPartidoCompleto(fecha, ubicacion);
-        partido.setOrganizador(organizador);
+        Partido partido = factory.crearPartidoCompleto(fecha, ubicacion, organizador);
         
+        agregarJugador(partido, organizador);
+
         notificarEvento(partido, EventoPartido.PARTIDO_CREADO);
-        System.out.println("Partido creado: " + partido);
-        
         return partido;
     }
 
-    public boolean agregarJugador(Partido partido, Usuario usuario) {
-        if (!validarOperacion(partido, "agregar_jugador")) {
-            System.out.println("No se puede agregar el jugador en el estado actual: " + 
-                             partido.getEstadoActual().getNombreEstado());
+    public boolean agregarJugador(Partido partido, Usuario jugador) {
+        if (partido == null || jugador == null || !partido.getEstadoActual().puedeAgregarJugador()) {
             return false;
         }
 
-        if (!partido.puedeAgregarJugador(usuario)) {
-            System.out.println("El jugador no cumple los criterios del partido");
+        if (partido.getCriterios() != null && !partido.getCriterios().cumpleCriterios(jugador)) {
             return false;
         }
 
-        // Agregar al primer equipo disponible
-        for (int i = 0; i < partido.getEquipos().size(); i++) {
-            if (partido.getEquipos().get(i).puedeAgregarJugador()) {
-                partido.agregarJugadorAEquipo(usuario, i);
-                notificarEvento(partido, EventoPartido.JUGADOR_UNIDO);
-                System.out.println("Jugador " + usuario.getNombre() + " agregado al partido");
-                
-                // Verificar si el partido está completo
-                if (partido.estaCompleto()) {
-                    notificarEvento(partido, EventoPartido.PARTIDO_ARMADO);
-                }
-                
-                return true;
+        boolean agregado = partido.agregarJugador(jugador);
+        if (agregado) {
+            notificarEvento(partido, EventoPartido.JUGADOR_UNIDO);
+            // La transición a PartidoArmado es manejada por el estado mismo, pero si se completa
+            // disparamos la notificación desde aquí.
+            if (partido.getEstadoActual() instanceof PartidoArmado) {
+                 notificarEvento(partido, EventoPartido.PARTIDO_ARMADO);
             }
         }
-
-        System.out.println("No hay espacio disponible en ningún equipo");
-        return false;
+        return agregado;
     }
 
     public boolean confirmarPartido(Partido partido) {
@@ -109,6 +96,11 @@ public class GestorPartido {
         partido.cambiarEstado(new Finalizado());
         notificarEvento(partido, EventoPartido.PARTIDO_FINALIZADO);
         System.out.println("Partido finalizado");
+
+        // Actualizar historial de los jugadores
+        for (Usuario jugador : partido.getJugadoresActuales()) {
+            jugador.agregarAPartidoHistorial(partido);
+        }
         
         return true;
     }
@@ -145,13 +137,5 @@ public class GestorPartido {
 
     public void setNotificacionManager(NotificacionManager notificacionManager) {
         this.notificacionManager = notificacionManager;
-    }
-
-    public Emparejador getEmparejador() {
-        return emparejador;
-    }
-
-    public void setEmparejador(Emparejador emparejador) {
-        this.emparejador = emparejador;
     }
 } 

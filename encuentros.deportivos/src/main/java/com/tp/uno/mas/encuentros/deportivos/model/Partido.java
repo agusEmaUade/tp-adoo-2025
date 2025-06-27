@@ -2,10 +2,16 @@ package com.tp.uno.mas.encuentros.deportivos.model;
 
 import com.tp.uno.mas.encuentros.deportivos.state.EstadoPartido;
 import com.tp.uno.mas.encuentros.deportivos.state.NecesitamosJugadores;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
+@Getter
+@Setter
 public class Partido {
     private String fecha;
     private String deporte;
@@ -22,7 +28,7 @@ public class Partido {
         this.estadoActual = new NecesitamosJugadores();
     }
 
-    public Partido(String fecha, String deporte, int cantJugadoresRequeridos, 
+    public Partido(String fecha, String deporte, int cantJugadoresRequeridos,
                    int duracion, Ubicacion ubicacion, Usuario organizador) {
         this.fecha = fecha;
         this.deporte = deporte;
@@ -30,24 +36,38 @@ public class Partido {
         this.duracion = duracion;
         this.ubicacion = ubicacion;
         this.organizador = organizador;
-        this.equipos = new ArrayList<>();
         this.estadoActual = new NecesitamosJugadores();
+        this.equipos = new ArrayList<>();
+        this.criterios = null;
     }
 
     public void cambiarEstado(EstadoPartido nuevoEstado) {
         this.estadoActual = nuevoEstado;
+        System.out.println("Estado del partido cambiado a: " + nuevoEstado.getNombreEstado());
+        // Invocamos el manejo del estado para permitir transiciones automáticas
+        this.estadoActual.manejarCambioEstado(this);
     }
 
-    public EstadoPartido getEstado() {
-        return estadoActual;
+    public boolean agregarJugador(Usuario jugador) {
+        if (!estadoActual.puedeAgregarJugador() || estaCompleto()) {
+            return false;
+        }
+
+        Equipo equipoConMenosJugadores = equipos.stream()
+                .min(Comparator.comparingInt(Equipo::cantidadJugadores))
+                .orElse(null);
+
+        if (equipoConMenosJugadores != null && equipoConMenosJugadores.puedeAgregarJugador()) {
+            equipoConMenosJugadores.agregarJugador(jugador);
+            // Después de agregar, el estado podría necesitar cambiar (ej. de NecesitamosJugadores a PartidoArmado)
+            this.estadoActual.manejarCambioEstado(this);
+            return true;
+        }
+        return false;
     }
 
     public boolean estaCompleto() {
-        int totalJugadores = 0;
-        for (Equipo equipo : equipos) {
-            totalJugadores += equipo.cantidadJugadores();
-        }
-        return totalJugadores >= cantJugadoresRequeridos;
+        return getJugadoresActuales().size() >= cantJugadoresRequeridos;
     }
 
     public boolean puedeIniciar() {
@@ -62,74 +82,23 @@ public class Partido {
         this.criterios = criterios;
     }
 
-    public void quitarCriterios() {
-        this.criterios = null;
-    }
-
-    public boolean puedeAgregarJugador(Usuario usuario) {
-        if (!estadoActual.puedeAgregarJugador()) {
-            return false;
-        }
-        
-        // Verificar criterios si existen
-        if (tieneCriterios()) {
-            return criterios.cumpleCriterios(usuario) && 
-                   criterios.validarUbicacion(usuario.getUbicacion(), this.ubicacion);
-        }
-        
-        return true;
-    }
-
-    public void agregarJugadorAEquipo(Usuario usuario, int indiceEquipo) {
-        if (puedeAgregarJugador(usuario) && indiceEquipo < equipos.size()) {
-            equipos.get(indiceEquipo).agregarJugador(usuario);
-            estadoActual.manejarCambioEstado(this);
-        }
-    }
-
     public void crearEquipo(String nombreEquipo, int maxJugadores) {
         equipos.add(new Equipo(nombreEquipo, maxJugadores));
     }
 
-    // Getters y Setters
-    public String getFecha() { return fecha; }
-    public void setFecha(String fecha) { this.fecha = fecha; }
-
-    public String getDeporte() { return deporte; }
-    public void setDeporte(String deporte) { this.deporte = deporte; }
-
-    public int getCantJugadoresRequeridos() { return cantJugadoresRequeridos; }
-    public void setCantJugadoresRequeridos(int cantJugadoresRequeridos) { 
-        this.cantJugadoresRequeridos = cantJugadoresRequeridos; 
+    public List<Usuario> getJugadoresActuales() {
+        return equipos.stream()
+                .flatMap(equipo -> equipo.getJugadores().stream())
+                .collect(Collectors.toList());
     }
-
-    public int getDuracion() { return duracion; }
-    public void setDuracion(int duracion) { this.duracion = duracion; }
-
-    public EstadoPartido getEstadoActual() { return estadoActual; }
-    public void setEstadoActual(EstadoPartido estadoActual) { this.estadoActual = estadoActual; }
-
-    public List<Equipo> getEquipos() { return equipos; }
-    public void setEquipos(List<Equipo> equipos) { this.equipos = equipos; }
-
-    public Ubicacion getUbicacion() { return ubicacion; }
-    public void setUbicacion(Ubicacion ubicacion) { this.ubicacion = ubicacion; }
-
-    public Usuario getOrganizador() { return organizador; }
-    public void setOrganizador(Usuario organizador) { this.organizador = organizador; }
-
-    public CriteriosPartido getCriterios() { return criterios; }
-    public void setCriterios(CriteriosPartido criterios) { this.criterios = criterios; }
 
     @Override
     public String toString() {
         return "Partido{" +
                 "fecha='" + fecha + '\'' +
                 ", deporte='" + deporte + '\'' +
-                ", cantJugadoresRequeridos=" + cantJugadoresRequeridos +
-                ", duracion=" + duracion +
                 ", estado='" + estadoActual.getNombreEstado() + '\'' +
-                ", organizador=" + (organizador != null ? organizador.getNombre() : "Sin organizador") +
+                ", organizador=" + (organizador != null ? organizador.getNombre() : "N/A") +
                 '}';
     }
 } 
