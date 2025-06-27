@@ -1,6 +1,7 @@
 package com.tp.uno.mas.encuentros.deportivos.integration;
 
 import com.tp.uno.mas.encuentros.deportivos.adapter.*;
+import com.tp.uno.mas.encuentros.deportivos.controller.PartidoController;
 import com.tp.uno.mas.encuentros.deportivos.factory.*;
 import com.tp.uno.mas.encuentros.deportivos.model.*;
 import com.tp.uno.mas.encuentros.deportivos.observer.*;
@@ -18,7 +19,7 @@ import java.util.List;
  */
 class CasosDeUsoRealIntegrationTest {
     
-    private GestorPartido gestorPartido;
+    private PartidoController partidoController;
     private BuscadorPartidos buscadorPartidos;
     private List<Usuario> usuariosDisponibles;
     private Ubicacion ubicacionPalermo;
@@ -32,15 +33,8 @@ class CasosDeUsoRealIntegrationTest {
     
     private void configurarSistema() {
         // Configurar sistema completo con todos los componentes
-        TestEmailAdapter emailAdapter = new TestEmailAdapter();
-        TestPushAdapter pushAdapter = new TestPushAdapter();
-        
-        NotificacionManager notificacionManager = new NotificacionManager();
-        notificacionManager.agregarObserver(new EmailNotificador(emailAdapter));
-        notificacionManager.agregarObserver(new PushNotificador(pushAdapter));
-        
-        gestorPartido = new GestorPartido(notificacionManager);
-        buscadorPartidos = new BuscadorPartidos();
+        partidoController = new PartidoController();
+        buscadorPartidos = partidoController.getBuscadorPartidos();
         
         ubicacionPalermo = new Ubicacion(-34.5755f, -58.4000f, 3.0f);
         ubicacionVillaCrespo = new Ubicacion(-34.5998f, -58.4314f, 2.0f);
@@ -74,7 +68,7 @@ class CasosDeUsoRealIntegrationTest {
         PartidoFactory futbolFactory = new FutbolFactory();
         
         // 1. Crear partido con criterios específicos
-        Partido partido = gestorPartido.crearPartido(futbolFactory, "2024-12-25 16:00", ubicacionPalermo, organizadora);
+        Partido partido = partidoController.crearPartido(futbolFactory, "2024-12-25 16:00", ubicacionPalermo, organizadora);
         
         // 2. Aplicar criterios: solo nivel intermedio-avanzado, mixto, radio 5km
         CriteriosPartido criterios = new CriteriosPartido("intermedio", "avanzado", 20, 40, "mixto", 5.0f);
@@ -83,7 +77,7 @@ class CasosDeUsoRealIntegrationTest {
         // 3. Intentar agregar usuarios (solo algunos deberían cumplir criterios)
         List<Usuario> jugadoresAgregados = new ArrayList<>();
         for (Usuario usuario : usuariosDisponibles) {
-            if (gestorPartido.agregarJugador(partido, usuario)) {
+            if (partidoController.agregarJugador(partido, usuario)) {
                 jugadoresAgregados.add(usuario);
             }
         }
@@ -100,7 +94,7 @@ class CasosDeUsoRealIntegrationTest {
             for (int i = jugadoresAgregados.size(); i < partido.getCantJugadoresRequeridos(); i++) {
                 Usuario usuarioExtra = new Usuario("Jugador" + i, "jugador" + i + "@test.com", "pass", 
                                                  "Fútbol", "intermedio", ubicacionPalermo, 25, "mixto");
-                if (gestorPartido.agregarJugador(partido, usuarioExtra)) {
+                if (partidoController.agregarJugador(partido, usuarioExtra)) {
                     jugadoresAgregados.add(usuarioExtra);
                 }
             }
@@ -108,9 +102,9 @@ class CasosDeUsoRealIntegrationTest {
         
         // 6. Completar ciclo del partido
         partido.cambiarEstado(new PartidoArmado());
-        assertTrue(gestorPartido.confirmarPartido(partido));
-        assertTrue(gestorPartido.iniciarPartido(partido));
-        assertTrue(gestorPartido.finalizarPartido(partido));
+        assertTrue(partidoController.confirmarPartido(partido));
+        assertTrue(partidoController.iniciarPartido(partido));
+        assertTrue(partidoController.finalizarPartido(partido));
         
         // 7. Verificar estado final
         assertTrue(partido.getEstadoActual() instanceof Finalizado);
@@ -124,15 +118,15 @@ class CasosDeUsoRealIntegrationTest {
         PartidoFactory tenisFactory = new TenisFactory();
         
         // 1. Crear partido
-        Partido partido = gestorPartido.crearPartido(tenisFactory, "2024-12-26 10:00", ubicacionPalermo, organizador);
+        Partido partido = partidoController.crearPartido(tenisFactory, "2024-12-26 10:00", ubicacionPalermo, organizador);
         
         // 2. Buscar jugadores cercanos
         List<Partido> partidos = new ArrayList<>();
         partidos.add(partido);
         
         // 3. Agregar usuarios cercanos
-        gestorPartido.agregarJugador(partido, organizador); // Roberto (organizador)
-        gestorPartido.agregarJugador(partido, usuariosDisponibles.get(6)); // Carmen - también en Palermo
+        partidoController.agregarJugador(partido, organizador); // Roberto (organizador)
+        partidoController.agregarJugador(partido, usuariosDisponibles.get(6)); // Carmen - también en Palermo
         
         // Verificar que el partido está completo con 2 jugadores
         assertEquals(2, partido.getEquipos().stream().mapToInt(e -> e.cantidadJugadores()).sum());
@@ -144,9 +138,9 @@ class CasosDeUsoRealIntegrationTest {
         
         // 5. Completar partido
         partido.cambiarEstado(new PartidoArmado());
-        assertTrue(gestorPartido.confirmarPartido(partido));
-        assertTrue(gestorPartido.iniciarPartido(partido));
-        assertTrue(gestorPartido.finalizarPartido(partido));
+        assertTrue(partidoController.confirmarPartido(partido));
+        assertTrue(partidoController.iniciarPartido(partido));
+        assertTrue(partidoController.finalizarPartido(partido));
     }
     
     @Test
@@ -156,18 +150,18 @@ class CasosDeUsoRealIntegrationTest {
         PartidoFactory basquetFactory = new BasquetFactory();
         
         // 1. Crear partido de básquet (necesita 10 jugadores)
-        Partido partido = gestorPartido.crearPartido(basquetFactory, "2024-12-27 19:00", ubicacionVillaCrespo, organizador);
+        Partido partido = partidoController.crearPartido(basquetFactory, "2024-12-27 19:00", ubicacionVillaCrespo, organizador);
         
         // 2. Solo agregar pocos jugadores
-        gestorPartido.agregarJugador(partido, usuariosDisponibles.get(8)); // Sofía
+        partidoController.agregarJugador(partido, usuariosDisponibles.get(8)); // Sofía
         
         // 3. Decidir cancelar por falta de jugadores
-        assertTrue(gestorPartido.cancelarPartido(partido));
+        assertTrue(partidoController.cancelarPartido(partido));
         assertTrue(partido.getEstadoActual() instanceof Cancelado);
         
         // 4. Verificar que no se pueden hacer más operaciones
-        assertFalse(gestorPartido.agregarJugador(partido, usuariosDisponibles.get(0)));
-        assertFalse(gestorPartido.confirmarPartido(partido));
+        assertFalse(partidoController.agregarJugador(partido, usuariosDisponibles.get(0)));
+        assertFalse(partidoController.confirmarPartido(partido));
     }
     
     @Test
@@ -175,7 +169,7 @@ class CasosDeUsoRealIntegrationTest {
         // ESCENARIO: Probar diferentes estrategias de búsqueda
         Usuario organizador = usuariosDisponibles.get(0); // Ana
         PartidoFactory futbolFactory = new FutbolFactory();
-        Partido partido = gestorPartido.crearPartido(futbolFactory, "2024-12-28 15:00", ubicacionPalermo, organizador);
+        Partido partido = partidoController.crearPartido(futbolFactory, "2024-12-28 15:00", ubicacionPalermo, organizador);
         
         List<Partido> partidos = new ArrayList<>();
         partidos.add(partido);
@@ -209,13 +203,13 @@ class CasosDeUsoRealIntegrationTest {
         
         // 1. Crear manualmente los partidos para un control total
         Partido partidoFutbol = new FutbolFactory().crearPartidoCompleto("2024-12-29 16:00", ubicacionPalermo, usuariosDisponibles.get(0));
-        gestorPartido.agregarJugador(partidoFutbol, usuariosDisponibles.get(0));
+        partidoController.agregarJugador(partidoFutbol, usuariosDisponibles.get(0));
         
         Partido partidoTenis = new TenisFactory().crearPartidoCompleto("2024-12-29 18:00", ubicacionVillaCrespo, usuariosDisponibles.get(5));
-        gestorPartido.agregarJugador(partidoTenis, usuariosDisponibles.get(5));
+        partidoController.agregarJugador(partidoTenis, usuariosDisponibles.get(5));
         
         Partido partidoBasquet = new BasquetFactory().crearPartidoCompleto("2024-12-29 20:00", ubicacionPalermo, usuariosDisponibles.get(7));
-        gestorPartido.agregarJugador(partidoBasquet, usuariosDisponibles.get(7));
+        partidoController.agregarJugador(partidoBasquet, usuariosDisponibles.get(7));
 
         // 2. Verificar estados iniciales
         assertTrue(partidoFutbol.getEstadoActual() instanceof NecesitamosJugadores);
@@ -223,12 +217,12 @@ class CasosDeUsoRealIntegrationTest {
         assertTrue(partidoBasquet.getEstadoActual() instanceof NecesitamosJugadores);
         
         // 3. Completar el partido de tenis, confirmar y cancelar otro
-        gestorPartido.agregarJugador(partidoTenis, usuariosDisponibles.get(6)); // Agregar segundo jugador
+        partidoController.agregarJugador(partidoTenis, usuariosDisponibles.get(6)); // Agregar segundo jugador
         
         assertTrue(partidoTenis.getEstadoActual() instanceof PartidoArmado, "El partido de tenis debería estar 'Armado'");
         
-        assertTrue(gestorPartido.confirmarPartido(partidoTenis), "La confirmación del partido de tenis debería ser exitosa");
-        assertTrue(gestorPartido.cancelarPartido(partidoBasquet), "La cancelación del partido de básquet debería ser exitosa");
+        assertTrue(partidoController.confirmarPartido(partidoTenis), "La confirmación del partido de tenis debería ser exitosa");
+        assertTrue(partidoController.cancelarPartido(partidoBasquet), "La cancelación del partido de básquet debería ser exitosa");
         
         // 4. Verificar estados finales
         assertTrue(partidoFutbol.getEstadoActual() instanceof NecesitamosJugadores, "Futbol debe seguir necesitando jugadores");
@@ -242,7 +236,7 @@ class CasosDeUsoRealIntegrationTest {
         Usuario organizador = usuariosDisponibles.get(1); // Carlos (avanzado, masculino, 30 años)
         PartidoFactory futbolFactory = new FutbolFactory();
         
-        Partido partido = gestorPartido.crearPartido(futbolFactory, "2024-12-30 14:00", ubicacionPalermo, organizador);
+        Partido partido = partidoController.crearPartido(futbolFactory, "2024-12-30 14:00", ubicacionPalermo, organizador);
         
         // Criterios muy restrictivos: solo masculinos, avanzados, 28-32 años, radio 1km
         CriteriosPartido criteriosRestrictivos = new CriteriosPartido("avanzado", "avanzado", 28, 32, "masculino", 1.0f);
@@ -256,7 +250,7 @@ class CasosDeUsoRealIntegrationTest {
         int jugadoresAgregados = 0;
         for (Usuario usuario : usuariosDisponibles) {
             List<Partido> partidosValidos = buscadorPartidos.buscarPartidosPorNivel(partidos, usuario);
-            if (!partidosValidos.isEmpty() && gestorPartido.agregarJugador(partido, usuario)) {
+            if (!partidosValidos.isEmpty() && partidoController.agregarJugador(partido, usuario)) {
                 jugadoresAgregados++;
                 // Verificar que cumple todos los criterios
                 assertEquals("avanzado", usuario.getNivel().toString());
@@ -276,7 +270,7 @@ class CasosDeUsoRealIntegrationTest {
         
         // 1. Crear partido con factory
         PartidoFactory futbolFactory = new FutbolFactory();
-        Partido partido = gestorPartido.crearPartido(futbolFactory, "2024-12-31 16:00", ubicacionPalermo, organizador);
+        Partido partido = partidoController.crearPartido(futbolFactory, "2024-12-31 16:00", ubicacionPalermo, organizador);
         assertEquals("Fútbol", partido.getDeporte());
         
         // 2. Configurar criterios razonables
@@ -286,7 +280,7 @@ class CasosDeUsoRealIntegrationTest {
         // 3. Agregar jugadores que cumplen criterios
         List<Usuario> participantes = new ArrayList<>();
         for (Usuario usuario : usuariosDisponibles) {
-            if (usuario.getDeporteFavorito().equals("Fútbol") && gestorPartido.agregarJugador(partido, usuario)) {
+            if (usuario.getDeporteFavorito().equals("Fútbol") && partidoController.agregarJugador(partido, usuario)) {
                 participantes.add(usuario);
             }
         }
@@ -304,24 +298,24 @@ class CasosDeUsoRealIntegrationTest {
             for (int i = participantes.size(); i < partido.getCantJugadoresRequeridos(); i++) {
                 Usuario usuarioExtra = new Usuario("Jugador" + i, "jugador" + i + "@test.com", "pass", 
                                                  "Fútbol", "intermedio", ubicacionPalermo, 25, "mixto");
-                gestorPartido.agregarJugador(partido, usuarioExtra);
+                partidoController.agregarJugador(partido, usuarioExtra);
             }
         }
         
         // 6. Simular llenado y confirmar
         partido.cambiarEstado(new PartidoArmado());
-        assertTrue(gestorPartido.confirmarPartido(partido));
+        assertTrue(partidoController.confirmarPartido(partido));
         assertTrue(partido.getEstadoActual() instanceof Confirmado);
         
         // 7. Iniciar partido (solo si está completo)
         if (partido.estaCompleto()) {
-            assertTrue(gestorPartido.iniciarPartido(partido));
+            assertTrue(partidoController.iniciarPartido(partido));
             assertTrue(partido.getEstadoActual() instanceof EnJuego);
         }
         
         // 8. Finalizar partido (solo si está en juego)
         if (partido.getEstadoActual() instanceof EnJuego) {
-            assertTrue(gestorPartido.finalizarPartido(partido));
+            assertTrue(partidoController.finalizarPartido(partido));
             assertTrue(partido.getEstadoActual() instanceof Finalizado);
         }
         

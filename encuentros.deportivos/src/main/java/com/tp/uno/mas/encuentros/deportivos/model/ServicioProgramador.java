@@ -1,5 +1,6 @@
 package com.tp.uno.mas.encuentros.deportivos.model;
 
+import com.tp.uno.mas.encuentros.deportivos.controller.PartidoController;
 import com.tp.uno.mas.encuentros.deportivos.state.Confirmado;
 
 import java.time.LocalDateTime;
@@ -7,10 +8,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class ServicioProgramador {
-    private final GestorPartido gestorPartido;
+    private final PartidoController partidoController;
 
-    public ServicioProgramador(GestorPartido gestorPartido) {
-        this.gestorPartido = gestorPartido;
+    public ServicioProgramador(PartidoController partidoController) {
+        this.partidoController = partidoController;
     }
 
     /**
@@ -24,7 +25,7 @@ public class ServicioProgramador {
                 .filter(this::esHoraDeIniciar)
                 .forEach(p -> {
                     System.out.println("  -> Es hora de iniciar el partido de " + p.getDeporte() + ". Iniciando...");
-                    gestorPartido.iniciarPartido(p);
+                    partidoController.iniciarPartido(p);
                 });
     }
 

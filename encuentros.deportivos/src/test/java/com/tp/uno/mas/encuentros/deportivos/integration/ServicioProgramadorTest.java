@@ -1,5 +1,6 @@
 package com.tp.uno.mas.encuentros.deportivos.integration;
 
+import com.tp.uno.mas.encuentros.deportivos.controller.PartidoController;
 import com.tp.uno.mas.encuentros.deportivos.factory.TenisFactory;
 import com.tp.uno.mas.encuentros.deportivos.model.*;
 import com.tp.uno.mas.encuentros.deportivos.observer.NotificacionManager;
@@ -19,13 +20,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ServicioProgramadorTest {
 
     private ServicioProgramador servicioProgramador;
-    private GestorPartido gestorPartido;
+    private PartidoController partidoController;
     private Usuario organizador;
 
     @BeforeEach
     void setUp() {
-        gestorPartido = new GestorPartido(new NotificacionManager());
-        servicioProgramador = new ServicioProgramador(gestorPartido);
+        partidoController = new PartidoController();
+        servicioProgramador = partidoController.getServicioProgramador();
         organizador = new Usuario("Test", "test@test.com", "pass", "tenis", "intermedio", new Ubicacion(), 25, "mixto");
     }
 
@@ -34,11 +35,11 @@ class ServicioProgramadorTest {
     void testIniciaPartidoCuandoEsLaHora() {
         // ARRANGE
         String fechaPasada = LocalDateTime.now().minusMinutes(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        Partido partido = gestorPartido.crearPartido(new TenisFactory(), fechaPasada, new Ubicacion(), organizador);
+        Partido partido = partidoController.crearPartido(new TenisFactory(), fechaPasada, new Ubicacion(), organizador);
         
         // Completar el partido para que pueda ser iniciado
         Usuario jugador2 = new Usuario("Jugador2", "j2@test.com", "pass", "tenis", "intermedio", new Ubicacion(), 28, "mixto");
-        gestorPartido.agregarJugador(partido, jugador2);
+        partidoController.agregarJugador(partido, jugador2);
         
         partido.cambiarEstado(new Confirmado()); // Simular que está confirmado
 
@@ -54,7 +55,7 @@ class ServicioProgramadorTest {
     void testNoIniciaPartidoCuandoNoEsLaHora() {
         // ARRANGE
         String fechaFutura = LocalDateTime.now().plusHours(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        Partido partido = gestorPartido.crearPartido(new TenisFactory(), fechaFutura, new Ubicacion(), organizador);
+        Partido partido = partidoController.crearPartido(new TenisFactory(), fechaFutura, new Ubicacion(), organizador);
         partido.cambiarEstado(new Confirmado());
 
         // ACT

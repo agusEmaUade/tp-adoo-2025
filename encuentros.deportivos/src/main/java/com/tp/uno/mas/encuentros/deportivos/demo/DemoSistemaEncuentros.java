@@ -1,7 +1,7 @@
 package com.tp.uno.mas.encuentros.deportivos.demo;
 
 import com.tp.uno.mas.encuentros.deportivos.controller.CuentaController;
-import com.tp.uno.mas.encuentros.deportivos.service.ServicioDePartidos;
+import com.tp.uno.mas.encuentros.deportivos.controller.PartidoController;
 import com.tp.uno.mas.encuentros.deportivos.factory.*;
 import com.tp.uno.mas.encuentros.deportivos.model.*;
 import com.tp.uno.mas.encuentros.deportivos.observer.NotificacionManager;
@@ -10,8 +10,7 @@ import java.util.List;
 
 public class DemoSistemaEncuentros {
 
-    private final ServicioDePartidos servicioDePartidos;
-    private final GestorPartido gestorPartido;
+    private final PartidoController partidoController;
     private final NotificacionManager notificacionManager;
     private final List<Usuario> usuarios;
 
@@ -19,9 +18,8 @@ public class DemoSistemaEncuentros {
         System.out.println("=== DEMO: Sistema de Encuentros Deportivos ===\n");
         CuentaController cuentaController = new CuentaController();
         this.usuarios = cuentaController.crearUsuarios();
-        this.servicioDePartidos = new ServicioDePartidos();
-        this.gestorPartido = servicioDePartidos.getGestorPartido();
-        this.notificacionManager = servicioDePartidos.getNotificacionManager();
+        this.partidoController = new PartidoController();
+        this.notificacionManager = partidoController.getNotificacionManager();
     }
 
     public void ejecutarDemoCompleta() {
@@ -39,8 +37,8 @@ public class DemoSistemaEncuentros {
         System.out.println("--- Demostrando Creación de Partidos (Patrón Factory) ---");
         Usuario organizador = usuarios.get(0);
 
-        Partido partidoFutbol = gestorPartido.crearPartido(new FutbolFactory(), "2024-12-20 15:00", ubicacion, organizador);
-        servicioDePartidos.registrarPartido(partidoFutbol);
+        Partido partidoFutbol = partidoController.crearPartido(new FutbolFactory(), "2024-12-20 15:00", ubicacion, organizador);
+        partidoController.registrarPartido(partidoFutbol);
 
         System.out.println("\n--- Agregando Jugadores al Partido de Fútbol ---");
         cicloVidaPartido(partidoFutbol);
@@ -52,18 +50,18 @@ public class DemoSistemaEncuentros {
         System.out.println("✓ Criterios aplicados al partido");
 
         for (Usuario u : usuarios) {
-            boolean agregado = gestorPartido.agregarJugador(partido, u);
+            boolean agregado = partidoController.agregarJugador(partido, u);
             System.out.println((agregado ? "✓" : "✗") + " " + u.getNombre() + (agregado ? " agregado" : " no pudo ser agregado"));
         }
 
         if (partido.getEstadoActual().puedeConfirmar()) {
-            gestorPartido.confirmarPartido(partido);
+            partidoController.confirmarPartido(partido);
         }
 
-        servicioDePartidos.getServicioProgramador().verificarYActualizarPartidos(List.of(partido));
+        partidoController.getServicioProgramador().verificarYActualizarPartidos(List.of(partido));
 
         if (partido.getEstadoActual().puedeFinalizar()) {
-            gestorPartido.finalizarPartido(partido);
+            partidoController.finalizarPartido(partido);
         }
 
         System.out.println("Estado final: " + partido.getEstadoActual().getNombreEstado());
@@ -84,8 +82,8 @@ public class DemoSistemaEncuentros {
         System.out.println("\n--- CASO DE USO: Búsqueda con criterios mixtos ---");
         Usuario juan = usuarios.get(0);
 
-        List<Partido> resultados = servicioDePartidos.getBuscadorPartidos().buscarPartidosConCriteriosMixtos(
-                servicioDePartidos.getPartidosDisponibles(), juan, 2);
+        List<Partido> resultados = partidoController.getBuscadorPartidos().buscarPartidosConCriteriosMixtos(
+                partidoController.getPartidosDisponibles(), juan, 2);
 
         if (!resultados.isEmpty()) {
             System.out.println("✓ " + juan.getNombre() + " encontró " + resultados.size() + " partidos compatibles");
@@ -101,15 +99,15 @@ public class DemoSistemaEncuentros {
         System.out.println("\n=== DEMOSTRACIÓN COMPLETA DE BÚSQUEDA PARA " + usuario.getNombre() + " ===");
         System.out.println("Usuario: " + usuario.getNombre() + " (" + usuario.getDeporteFavorito() + ", " + usuario.getNivel() + ")");
 
-        servicioDePartidos.getBuscadorPartidos().buscarPartidosPorNivel(servicioDePartidos.getPartidosDisponibles(), usuario);
-        servicioDePartidos.buscarPartidosCercanos(usuario, 5.0);
-        servicioDePartidos.buscarPorDeporte(usuario, usuario.getDeporteFavorito());
-        servicioDePartidos.buscarPartidosProximosACompletarse(usuario, 3);
+        partidoController.getBuscadorPartidos().buscarPartidosPorNivel(partidoController.getPartidosDisponibles(), usuario);
+        partidoController.buscarPartidosCercanos(usuario, 5.0);
+        partidoController.buscarPorDeporte(usuario, usuario.getDeporteFavorito());
+        partidoController.getBuscadorPartidos().buscarPartidosQueNecesitanPocoJugadores(partidoController.getPartidosDisponibles(), usuario, 3);
     }
 
     private void notificarSobreNuevosPartidos() {
         System.out.println("\n--- Notificando a usuarios sobre partidos de su interés ---");
-        for (Partido partido : servicioDePartidos.getPartidosDisponibles()) {
+        for (Partido partido : partidoController.getPartidosDisponibles()) {
             for (Usuario usuario : usuarios) {
                 if (partido.getJugadoresActuales().contains(usuario)) {
                     continue;
@@ -129,26 +127,26 @@ public class DemoSistemaEncuentros {
         Ubicacion ubicacionRecoleta = new Ubicacion(-34.5875f, -58.3974f, 5.0f);
 
         PartidoFactory futbolFactory = new FutbolFactory();
-        Partido partidoFutbol = gestorPartido.crearPartido(futbolFactory, "2024-12-25 16:00", ubicacionPalermo, usuarios.get(0));
+        Partido partidoFutbol = partidoController.crearPartido(futbolFactory, "2024-12-25 16:00", ubicacionPalermo, usuarios.get(0));
         partidoFutbol.aplicarCriterios(new CriteriosPartido("principiante", "avanzado", 18, 40, "mixto", 15.0f));
-        servicioDePartidos.registrarPartido(partidoFutbol);
+        partidoController.registrarPartido(partidoFutbol);
 
         PartidoFactory tenisFactory = new TenisFactory();
-        Partido partidoTenis = gestorPartido.crearPartido(tenisFactory, "2024-12-26 10:00", ubicacionRecoleta, usuarios.get(1));
-        gestorPartido.agregarJugador(partidoTenis, usuarios.get(2));
-        servicioDePartidos.registrarPartido(partidoTenis);
+        Partido partidoTenis = partidoController.crearPartido(tenisFactory, "2024-12-26 10:00", ubicacionRecoleta, usuarios.get(1));
+        partidoController.agregarJugador(partidoTenis, usuarios.get(2));
+        partidoController.registrarPartido(partidoTenis);
 
         PartidoFactory basquetFactory = new BasquetFactory();
-        Partido partidoBasquet = gestorPartido.crearPartido(basquetFactory, "2024-12-27 19:00", ubicacionCentro, usuarios.get(2));
+        Partido partidoBasquet = partidoController.crearPartido(basquetFactory, "2024-12-27 19:00", ubicacionCentro, usuarios.get(2));
         partidoBasquet.aplicarCriterios(new CriteriosPartido("intermedio", "avanzado", 20, 35, "masculino", 10.0f));
-        servicioDePartidos.registrarPartido(partidoBasquet);
+        partidoController.registrarPartido(partidoBasquet);
 
-        Partido partidoFutbol2 = gestorPartido.crearPartido(futbolFactory, "2024-12-28 15:00", ubicacionCentro, usuarios.get(3));
-        gestorPartido.agregarJugador(partidoFutbol2, usuarios.get(0));
-        gestorPartido.agregarJugador(partidoFutbol2, usuarios.get(1));
-        servicioDePartidos.registrarPartido(partidoFutbol2);
+        Partido partidoFutbol2 = partidoController.crearPartido(futbolFactory, "2024-12-28 15:00", ubicacionCentro, usuarios.get(3));
+        partidoController.agregarJugador(partidoFutbol2, usuarios.get(0));
+        partidoController.agregarJugador(partidoFutbol2, usuarios.get(1));
+        partidoController.registrarPartido(partidoFutbol2);
 
-        System.out.println("✓ Creados " + servicioDePartidos.getPartidosDisponibles().size() + " partidos de ejemplo para búsqueda");
+        System.out.println("✓ Creados " + partidoController.getPartidosDisponibles().size() + " partidos de ejemplo para búsqueda");
     }
 
 

@@ -28,19 +28,14 @@ classDiagram
         + estaEnRango(minimo: Nivel, maximo: Nivel): boolean
     }
     
-    class ServicioDePartidos {
-      -buscadorPartidos: BuscadorPartidos
-      -partidosDisponibles: list~Partido~
-      -notificacionManager: NotificacionManager
-      -gestorPartido: GestorPartido
-      -servicioProgramador: ServicioProgramador
-      + registrarPartido(partido: Partido)
-      + buscarPartidosCercanos(usuario: Usuario, radioKm: double): list~Partido~
-      + buscarPorDeporte(usuario: Usuario, deporte: string): list~Partido~
-    }
-
-    class GestorPartido {
+    class PartidoController {
+        -buscadorPartidos: BuscadorPartidos
+        -partidosDisponibles: list~Partido~
         -notificacionManager: NotificacionManager
+        -servicioProgramador: ServicioProgramador
+        + registrarPartido(partido: Partido)
+        + buscarPartidosCercanos(usuario: Usuario, radioKm: double): list~Partido~
+        + buscarPorDeporte(usuario: Usuario, deporte: string): list~Partido~
         + crearPartido(factory: PartidoFactory, fecha: string, ubicacion: Ubicacion, organizador: Usuario): Partido
         + agregarJugador(partido: Partido, usuario: Usuario): boolean
         + confirmarPartido(partido: Partido): boolean
@@ -55,6 +50,7 @@ classDiagram
         + buscarPartidosCercanos(partidosDisponibles: list~Partido~, usuario: Usuario, radioKm: double): list~Partido~
         + buscarPartidosPorDeporte(partidosDisponibles: list~Partido~, usuario: Usuario, deporte: string): list~Partido~
         + agregarEstrategia(estrategia: EstrategiaBusqueda)
+        + cumpleCriterios(usuario: Usuario): boolean
     }
     
     class Partido {
@@ -81,8 +77,7 @@ classDiagram
     }
 
     class ServicioProgramador {
-      -gestorPartido: GestorPartido
-      -verificadorHorarios: VerificadorHorarios
+      -partidoController: PartidoController
       + verificarYActualizarPartidos(partidos: list~Partido~)
     }
 
@@ -275,17 +270,13 @@ classDiagram
     NotificacionObserver <|.. PushNotificador
     
     %% Relaciones de Composición / Agregación
-    ServicioDePartidos "1" *-- "1" GestorPartido
-    ServicioDePartidos "1" *-- "1" BuscadorPartidos
-    ServicioDePartidos "1" *-- "1" NotificacionManager
-    ServicioDePartidos "1" *-- "1" ServicioProgramador
-    
-    GestorPartido "1" *-- "1" NotificacionManager
+    PartidoController "1" *-- "1" BuscadorPartidos
+    PartidoController "1" *-- "1" NotificacionManager
+    PartidoController "1" *-- "1" ServicioProgramador
     
     BuscadorPartidos o-- EstrategiaBusqueda : usa
 
-    ServicioProgramador "1" *-- "1" VerificadorHorarios
-    ServicioProgramador "1" *-- "1" GestorPartido
+    ServicioProgramador "1" --> "1" PartidoController : usa
     
     Partido *-- EstadoPartido : contiene
     Partido "1" --> "1" Usuario : organizador
@@ -298,9 +289,9 @@ classDiagram
     NotificacionManager o-- NotificacionObserver : notifica
     
     %% Relaciones de Uso (Dependencias)
-    DemoSistemaEncuentros ..> ServicioDePartidos : usa
-    GestorPartido ..> Partido : gestiona
-    GestorPartido ..> PartidoFactory : usa
+    DemoSistemaEncuentros ..> PartidoController : usa
+    PartidoController ..> Partido : gestiona
+    PartidoController ..> PartidoFactory : usa
     BuscadorPartidos ..> Partido : busca
     
     Usuario --> Nivel
