@@ -7,10 +7,8 @@ import com.tp.uno.mas.encuentros.deportivos.model.Usuario;
 public class BasquetFactory extends PartidoFactory {
 
     @Override
-    public Partido crearPartido(String fecha, Ubicacion ubicacion) {
-        Usuario organizador = new Usuario(); // Se asignaría después
-        Partido partido = new Partido(fecha, "Básquet", 10, 48, ubicacion, organizador);
-        return partido;
+    public Partido crearPartido(String fecha, Ubicacion ubicacion, Usuario organizador) {
+        return new Partido(fecha, "Básquet", 10, 48, ubicacion, organizador);
     }
 
     @Override

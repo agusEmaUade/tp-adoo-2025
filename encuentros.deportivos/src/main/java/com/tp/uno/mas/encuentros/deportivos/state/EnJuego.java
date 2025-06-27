@@ -6,7 +6,7 @@ public class EnJuego implements EstadoPartido {
     
     @Override
     public void manejarCambioEstado(Partido partido) {
-        // Un partido en juego solo puede finalizar
+        // No hay transiciones automáticas desde este estado.
     }
 
     @Override

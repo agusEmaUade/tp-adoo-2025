@@ -6,7 +6,7 @@ public class Finalizado implements EstadoPartido {
     
     @Override
     public void manejarCambioEstado(Partido partido) {
-        // Un partido finalizado no puede cambiar de estado
+        // Estado terminal, no hay transiciones.
     }
 
     @Override

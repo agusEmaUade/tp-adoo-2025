@@ -6,11 +6,8 @@ public class PartidoArmado implements EstadoPartido {
     
     @Override
     public void manejarCambioEstado(Partido partido) {
-        // El partido armado puede cambiar a confirmado manualmente
-        // o puede volver a necesitar jugadores si se van algunos
-        if (!partido.estaCompleto()) {
-            partido.cambiarEstado(new NecesitamosJugadores());
-        }
+        // Un partido armado puede cambiar a confirmado o cancelado, pero es una acción manual,
+        // no una transición automática por cambio de estado interno.
     }
 
     @Override

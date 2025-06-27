@@ -48,15 +48,4 @@ public class CriteriosPartido {
         double distancia = ubicacion.calcularDistancia(ubicacionPartido);
         return distancia <= radioMaximo;
     }
-
-    private int convertirNivelANumero(String nivel) {
-        switch (nivel.toLowerCase()) {
-            case "principiante": return 1;
-            case "intermedio": return 2;
-            case "avanzado": return 3;
-            default: return 1;
-        }
-    }
-
-    // Getters y Setters generados automáticamente por @Data
 } 

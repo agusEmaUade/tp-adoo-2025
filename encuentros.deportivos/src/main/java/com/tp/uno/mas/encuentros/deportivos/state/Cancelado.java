@@ -6,7 +6,7 @@ public class Cancelado implements EstadoPartido {
     
     @Override
     public void manejarCambioEstado(Partido partido) {
-        // Un partido cancelado no puede cambiar de estado
+        // Estado terminal, no hay transiciones.
     }
 
     @Override
